@@ -10,31 +10,92 @@ namespace OptimizePooling
 {
     class worklist
     {
-        int curPlateColumnIndex = 0;
-        public List<string> Generate(int sampleCount)
+        static int curPlateColumnIndex = 0;
+        public List<string> Generate(int sampleCount,List<string> barcodesFrom)
         {
+
+            //first process batchs,48 per batch for 6 pooling into 1, 64 for 8 pooling into 1,etc.
             int sampleCntPerBatch = 8 * GlobalVars.Instance.PoolingCnt;
             int batchCnt = sampleCount / sampleCntPerBatch;
-            List<PipettingInfo> pipettingInfos = new List<PipettingInfo>();
+            List<PipettingInfo> batchPipettingInfos = new List<PipettingInfo>();
             int startGridID = int.Parse(ConfigurationManager.AppSettings["startGrid"]);
             for (int i = 0; i < batchCnt; i++)
             {
-                pipettingInfos.AddRange(GenerateBatch(startGridID));
+                batchPipettingInfos.AddRange(GenerateBatch(startGridID));
                 curPlateColumnIndex++;
                 startGridID += 3;
             }
-            List<string> strs = Format(pipettingInfos);
+            List<string> strs = Format(batchPipettingInfos);
             strs.Add("B");
-            int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
-            int dstWellCntNeeded = remainingCnt / GlobalVars.Instance.PoolingCnt;
 
+            //process remaining
+            List<PipettingInfo> fragmentsPipettingInfo = new List<PipettingInfo>();
+            int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
+            int dstWellCntNeeded = (remainingCnt + GlobalVars.Instance.PoolingCnt -1)/ GlobalVars.Instance.PoolingCnt;
+            for (int wellIndex = 0; wellIndex < remainingCnt; wellIndex++ )
+            {
+                int srcGridID = startGridID + wellIndex / 16;
+                int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
+                int dstWellIndex = wellIndex - wellIndex / (GlobalVars.Instance.PoolingCnt) *GlobalVars.Instance.PoolingCnt;
+                if(wellIndex % 16 ==0 && wellIndex != 0)
+                {
+                    curPlateColumnIndex++;
+                }
+                fragmentsPipettingInfo.Add(new PipettingInfo(
+                    string.Format("grid{0}", srcGridID),
+                    wellIndexInGrid + 1,
+                    GlobalVars.Instance.PipettingVolume,
+                    GlobalVars.Instance.DstLabware,
+                    curPlateColumnIndex * 8 + dstWellIndex + 1,
+                     GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)]));
+            }
+            strs.AddRange(Format(fragmentsPipettingInfo));
+            batchPipettingInfos.AddRange(fragmentsPipettingInfo);
+            barcodesFrom = GetBarcodesSourceInfo(batchPipettingInfos);
 
             return strs;
         }
 
+        //get source info for all the pipetting infos.
+        private List<string> GetBarcodesSourceInfo(List<PipettingInfo> allPipettingInfo)
+        {
+            List<string> strs = new List<string>();
+            List<int> dstWellIDs = allPipettingInfo.Select(x=>x.dstWellID).ToList();
+            foreach(int dstWellID in dstWellIDs)
+            {
+                var sameDstPipettings = allPipettingInfo.Where(x=>x.dstWellID == dstWellID).ToList();
+                strs.Add(GetWellSourceBarcodes(dstWellID,sameDstPipettings));
+            }
+            return strs;
+            
+        }
+
+        private string GetWellSourceBarcodes(int dstWellID,List<PipettingInfo> sameDstPipettings)
+        {
+ 	        string s = dstWellID.ToString();
+            foreach(var pipettingInfo in sameDstPipettings)
+            {
+                s += "," + pipettingInfo.barcode;
+            }
+            return s;
+        }
+
         private List<string> Format(List<PipettingInfo> pipettingInfos)
         {
-            throw new NotImplementedException();
+            List<string> strs = new List<string>();
+            pipettingInfos.ForEach(x => strs.Add(Format(x)));
+            return strs;
+        }
+
+        private string Format(PipettingInfo x)
+        {
+            return string.Format("{0},{1},{2},{3},{4},{5}",
+                x.srcLabware,
+                x.srcWellID,
+                x.volume,
+                x.dstLabware,
+                x.dstWellID,
+                x.barcode);
         }
 
         private IEnumerable<PipettingInfo> GenerateBatch(int startGridID)
@@ -43,17 +104,17 @@ namespace OptimizePooling
            
             for(int iGrid = 0; iGrid < 3; iGrid++)
             {
-                int srcGrid = startGridID + iGrid;
+                int srcGridID = startGridID + iGrid;
                 for( int wellIndex = 0; wellIndex < 16 ; wellIndex++)
                 {
                     int dstWellIndex = wellIndex;
                     if (dstWellIndex >= 8)
                         dstWellIndex -= 8;
-                    pipettingInfos.Add(new PipettingInfo(string.Format("grid{0}", srcGrid),
+                    pipettingInfos.Add(new PipettingInfo(string.Format("grid{0}", srcGridID),
                         wellIndex + 1,
                         GlobalVars.Instance.PipettingVolume,
                         GlobalVars.Instance.DstLabware,
-                        curPlateColumnIndex * 8 + dstWellIndex + 1, GlobalVars.Instance.pos_BarcodeDict[new Position(srcGrid - 1, wellIndex)]));
+                        curPlateColumnIndex * 8 + dstWellIndex + 1, GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndex)]));
                 }
             }
             return pipettingInfos;
@@ -76,6 +137,9 @@ namespace OptimizePooling
     {
         static GlobalVars instance = null;
         public Dictionary<Position, string> pos_BarcodeDict;
+        private double volume = double.Parse(GetSetting("volumeUL"));
+        private string dstLabware = GetSetting("dstLabware");
+        private int poolingCnt = int.Parse(GetSetting("poolingCnt"));
         public static GlobalVars Instance
         {
             get
@@ -88,8 +152,9 @@ namespace OptimizePooling
 
         public  string DstLabware
         {
-            get{
-                return GetSetting("dstLabware");
+            get
+            {
+                return dstLabware;
             }
         }
 
@@ -97,22 +162,20 @@ namespace OptimizePooling
         {
             get
             {
-                return int.Parse(GetSetting("poolingCnt"));
+                return poolingCnt;
             }
         }
-
-
 
         public double PipettingVolume
         {
             get
             {
-                return double.Parse(GetSetting("volumeUL"));
+                return volume;
             }
         }
 
 
-        private string GetSetting(string key)
+        private static string GetSetting(string key)
         {
             return ConfigurationManager.AppSettings[key];
         }
