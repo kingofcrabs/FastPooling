@@ -48,7 +48,7 @@ namespace FastPooling
             int numBytes = 0;
             StringBuilder msg = new StringBuilder();
             ownerInvoker.sDel = ExecuteCommand;
-            pipeName = "SaberToothTiger";
+            pipeName = "FastPooling";
             try
             {
                 pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.In, 1,
