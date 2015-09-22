@@ -42,12 +42,11 @@ namespace FastPooling
             CreateNamedPipeServer();
             txtRound.DataContext = GlobalVars.Instance;
             txtCurGridNumber.DataContext = scanInfo;
-            lstBarcodes.ItemsSource = scanInfo.Barcodes;
+            lstBarcodes.ItemsSource = scanInfo.SamplesInfo;
         }
 
-        private void btnSetGridCnt_Click(object sender, EventArgs e)
+        private void btnSetGridCnt_Click(object sender, RoutedEventArgs e)
         {
-
             string sGridCnt = txtGridCnt.Text;
             if (sGridCnt == "")
             {
@@ -61,6 +60,8 @@ namespace FastPooling
                 SetErrorInfo("Grid数必须在1~10之间！");
                 return;
             }
+            Helper.WriteGridCnt(gridCnt);
+            Helper.CloseWaiter("Feed");
             EnableControls(false);
         }
 
@@ -68,11 +69,13 @@ namespace FastPooling
         {
             txtInfo.Text = info;
             txtInfo.Foreground = new SolidColorBrush(Colors.Red);
+            txtInfo.Background = new SolidColorBrush(Colors.White);
         }
 
         private void EnableControls(bool bEnable)
         {
             txtGridCnt.IsEnabled = bEnable;
+            btnSetGridCnt.IsEnabled = bEnable;
         }
 
         #region namedpipe
@@ -101,9 +104,11 @@ namespace FastPooling
                 this.Close();
                 return;
             }
-            if (sCommand != "")
+
+            if(sCommand.Contains("NewBatch"))
             {
-                txtLog.AppendText(sCommand + "\r\n");
+                EnableControls(true);
+                return;
             }
 
             Helper.WriteRetry(false);
@@ -111,22 +116,43 @@ namespace FastPooling
             List<string> barcodes = new List<string>();
             List<bool> results = new List<bool>();
             ReadBarcode(ref grid, barcodes);
-            txtLog.AppendText(string.Format("读取Grid：{0}的条码。\r\n",grid));
             bool bok = true;
             try
             {
-                CheckBarcodes(grid, barcodes);
                 scanInfo.GridID = grid;
-                scanInfo.Barcodes.Clear();
-                barcodes.ForEach(x => scanInfo.Barcodes.Add(x));
+                scanInfo.SamplesInfo.Clear();
+                for (int i = 0; i < barcodes.Count;i++ )
+                {
+                    scanInfo.SamplesInfo.Add(new SampleInfo(i, barcodes[i]));
+                }
+                CheckBarcodes(grid, barcodes);
+                GlobalVars.Instance.SetBarcodes(grid, barcodes);
             }
             catch (Exception ex)
             {
                 SetErrorInfo(ex.Message);
                 bok = false;
             }
+            if(NeedGenerateWorklist(grid))
+            {
+                txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!",GlobalVars.Instance.pos_BarcodeDict.Count));
+                worklist worklist = new worklist();
+                List<string> barcodesTrace = new List<string>();
+                List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count,ref barcodesTrace);
+                GlobalVars.Instance.ResetPosBarcode();
+                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
+                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+            }
+
             Helper.WriteResult(bok);
+            if(bok)
+                Helper.CloseWaiter("Feed");
           
+        }
+
+        private bool NeedGenerateWorklist(int curGrid)
+        {
+            return curGrid == GlobalVars.Instance.StartGridID + int.Parse(txtGridCnt.Text) -1;
         }
 
         private void CheckBarcodes(int grid, List<string> barcodes)
@@ -135,11 +161,30 @@ namespace FastPooling
             {
                 throw new Exception(string.Format("Grid{0}上条码缺失！", grid));
             }
+
+            if(barcodes.Contains("$$$"))//sample missing
+            {
+                if(NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
+                {
+                    ShowWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
+                }
+                else
+                {
+                    throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
+                }
+            }
+        }
+
+        private void ShowWarning(string warning)
+        {
+            txtInfo.Text = warning;
+            txtInfo.Foreground = Brushes.Orange;
+            txtInfo.Background = Brushes.White;
         }
        
         private void ReadBarcode(ref int grid, List<string> barcodes)
         {
-            string posIDFile =  ConfigurationManager.AppSettings["posIDFile"];
+            string posIDFile = ConfigurationManager.AppSettings["posIDFile"];
             List<string> contents = File.ReadAllLines(posIDFile).ToList();
             contents = contents.Where(x => x != "").ToList();
             if (contents.Count() != 17)
@@ -153,7 +198,7 @@ namespace FastPooling
             {
                 barcodes.Add(Parse(s));
             }
-            txtLog.AppendText(string.Format("{0} Scan grid: {1}\r\n", DateTime.Now.ToLongTimeString(), grid));
+            txtLog.AppendText(string.Format("{0} 扫描grid: {1}\r\n", DateTime.Now.ToLongTimeString(), grid));
         }
 
         private string Parse(string s)
@@ -166,8 +211,14 @@ namespace FastPooling
         private void btnRetry_Click(object sender, RoutedEventArgs e)
         {
             txtLog.AppendText("retry pressed!\r\n");
-            Helper.CloseWaiter(strings.NotifierName);
+            Helper.CloseWaiter(strings.WaiterName);
             Helper.WriteRetry(true);
         }
+
+      
+
+       
     }
+
+    
 }

@@ -13,7 +13,7 @@ namespace OptimizePooling
     {
         static int curDstWellStartIndex = 0;
         public static int curBatchID = 1;
-        public List<string> Generate(int sampleCount,List<string> barcodesFrom)
+        public List<string> Generate(int sampleCount,ref List<string> barcodesTrace)
         {
 
             //first process batchs,48 per batch for 6 pooling into 1, 64 for 8 pooling into 1,etc.
@@ -51,7 +51,7 @@ namespace OptimizePooling
             curDstWellStartIndex += dstWellCntNeeded;
             strs.AddRange(Format(fragmentsPipettingInfo));
             batchPipettingInfos.AddRange(fragmentsPipettingInfo);
-            barcodesFrom = GetBarcodesSourceInfo(batchPipettingInfos);
+            barcodesTrace = GetBarcodesSourceInfo(batchPipettingInfos);
             curBatchID++;
             return strs;
         }
@@ -60,7 +60,7 @@ namespace OptimizePooling
         private List<string> GetBarcodesSourceInfo(List<PipettingInfo> allPipettingInfo)
         {
             List<string> strs = new List<string>();
-            List<int> dstWellIDs = allPipettingInfo.Select(x=>x.dstWellID).ToList();
+            List<int> dstWellIDs = allPipettingInfo.Select(x=>x.dstWellID).Distinct().ToList();
             foreach(int dstWellID in dstWellIDs)
             {
                 var sameDstPipettings = allPipettingInfo.Where(x=>x.dstWellID == dstWellID).ToList();

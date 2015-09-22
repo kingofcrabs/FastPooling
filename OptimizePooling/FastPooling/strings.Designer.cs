@@ -68,5 +68,14 @@ namespace FastPooling {
                 return ResourceManager.GetString("NotifierName", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feed.
+        /// </summary>
+        internal static string WaiterName {
+            get {
+                return ResourceManager.GetString("WaiterName", resourceCulture);
+            }
+        }
     }
 }

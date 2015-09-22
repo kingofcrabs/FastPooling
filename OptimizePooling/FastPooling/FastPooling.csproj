@@ -61,6 +61,7 @@
     <Compile Include="globals.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="interprocess.cs" />
+    <Compile Include="SampleInfo.cs" />
     <Compile Include="ScanInfo.cs" />
     <Compile Include="strings.Designer.cs">
       <AutoGen>True</AutoGen>

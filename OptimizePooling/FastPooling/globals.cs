@@ -31,6 +31,11 @@ namespace FastPooling
             }
         }
 
+        public GlobalVars()
+        {
+            pos_BarcodeDict = new Dictionary<Position, string>();
+        }
+
         public string DstLabware
         {
             get
@@ -67,12 +72,10 @@ namespace FastPooling
             }
         }
 
-
         private static string GetSetting(string key)
         {
             return ConfigurationManager.AppSettings[key];
         }
-
 
         public int StartGridID
         {
@@ -80,6 +83,26 @@ namespace FastPooling
             {
                 return startGridID;
             }
+        }
+
+        internal void SetBarcodes(int gridID, List<string> barcodes)
+        {
+            int gridIndex = gridID - 1;
+            for(int i = 0; i< barcodes.Count; i++)
+            {
+                if (barcodes[i] == "$$$")
+                    continue;
+                Position pos = new Position(gridIndex, i);
+                if (pos_BarcodeDict.ContainsKey(pos))
+                    pos_BarcodeDict[pos] = barcodes[i];
+                else
+                    pos_BarcodeDict.Add(pos, barcodes[i]);
+            }
+        }
+
+        internal void ResetPosBarcode()
+        {
+            pos_BarcodeDict.Clear();
         }
     }
 }

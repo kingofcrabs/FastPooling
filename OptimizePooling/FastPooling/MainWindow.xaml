@@ -1,8 +1,11 @@
 ﻿<Window x:Class="FastPooling.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FastPooling"
         Title="Fast Pooling" Height="500" Width="600">
+
     <Grid>
+      
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
             <RowDefinition Height="*"/>
@@ -27,7 +30,18 @@
                 <RowDefinition Height="50"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <ListBox Name="lstBarcodes"  HorizontalAlignment="Left"  Margin="55,0,0,10" Grid.Row="1" VerticalAlignment="Stretch" Width="133"/>
+            <ListBox Name="lstBarcodes"  HorizontalAlignment="Left"  Margin="55,0,0,10" Grid.Row="1" VerticalAlignment="Stretch" Width="133"     
+                   >
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Path=RowNumber}" Margin="0,0,10,10" />
+                            <TextBlock Text="{Binding Path=Barcode}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+
+            </ListBox>
             <Label Content="条码：" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" />
             <Label Content="Grid号：" HorizontalAlignment="Left" Margin="2,10,0,0" VerticalAlignment="Top"/>
             <TextBox IsReadOnly="True" Text="{Binding Path=GridID}" Name="txtCurGridNumber" HorizontalAlignment="Left" Height="24" Margin="55,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>

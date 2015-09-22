@@ -15,17 +15,12 @@ namespace FastPooling
         public static void CloseWaiter(string windowTitle)
         {
             Thread.Sleep(1000);
-            windowTitle = windowTitle.ToLower();
-            Process[] processlist = Process.GetProcesses();
-            foreach (Process process in processlist)
+            List<Process> processlist = Process.GetProcesses().ToList();
+            if (processlist.Exists(x => x.MainWindowTitle == windowTitle))
             {
-                if (!String.IsNullOrEmpty(process.MainWindowTitle))
-                {
-                    if (process.MainWindowTitle.ToLower().Contains(windowTitle))
-                    {
-                        process.CloseMainWindow();
-                    }
-                }
+                var toClose = processlist.Where(x=>x.MainWindowTitle == windowTitle).ToList();
+                toClose.ForEach(x => x.CloseMainWindow());
+                
             }
         }
         static public void WriteResult(bool bok)
@@ -35,8 +30,14 @@ namespace FastPooling
         }
         public static void WriteRetry(bool bRetry)
         {
-            string sFile = Folders.GetExeFolder() + "retry.txt";
+            string sFile = Folders.GetOutputFolder() + "retry.txt";
             File.WriteAllText(sFile, bRetry.ToString());
+        }
+
+        internal static void WriteGridCnt(int gridCnt)
+        {
+            string sFile = Folders.GetOutputFolder() + "gridsCount.txt";
+            File.WriteAllText(sFile, gridCnt.ToString());
         }
     }
 }
