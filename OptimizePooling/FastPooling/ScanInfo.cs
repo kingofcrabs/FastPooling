@@ -9,7 +9,7 @@ namespace FastPooling
 {
     class ScanInfo : BindableBase
     {
-        ObservableCollection<SampleInfo> samplesInfo = new ObservableCollection<SampleInfo>();
+        ObservableCollection<string> barcodes = new ObservableCollection<string>();
         int gridID = GlobalVars.Instance.StartGridID;
 
         public int GridID
@@ -24,15 +24,15 @@ namespace FastPooling
             }
         }
 
-        public ObservableCollection<SampleInfo> SamplesInfo
+        public ObservableCollection<string> Barcodes
         {
             get
             {
-                return samplesInfo;
+                return barcodes;
             }
             set
             {
-                SetProperty(ref samplesInfo, value);
+                SetProperty(ref barcodes, value);
             }
         }
     }

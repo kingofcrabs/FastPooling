@@ -4,17 +4,11 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
+using System.Windows.Forms;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace FastPooling
 {
@@ -23,7 +17,6 @@ namespace FastPooling
     /// </summary>
     public partial class MainWindow : Window
     {
-        ScanInfo scanInfo = new ScanInfo();
         public MainWindow()
         {
             InitializeComponent();
@@ -41,8 +34,6 @@ namespace FastPooling
         {
             CreateNamedPipeServer();
             txtRound.DataContext = GlobalVars.Instance;
-            txtCurGridNumber.DataContext = scanInfo;
-            lstBarcodes.ItemsSource = scanInfo.SamplesInfo;
         }
 
         private void btnSetGridCnt_Click(object sender, RoutedEventArgs e)
@@ -63,6 +54,52 @@ namespace FastPooling
             Helper.WriteGridCnt(gridCnt);
             Helper.CloseWaiter("Feed");
             EnableControls(false);
+            InitDataGridView(gridCnt);
+        }
+
+        private void InitDataGridView(int gridCnt)
+        {
+            dataGridView.AllowUserToAddRows = false;
+            dataGridView.EnableHeadersVisualStyles = false;
+            dataGridView.Columns.Clear();
+            int startGrid = GlobalVars.Instance.StartGridID;
+            List<string> strs = new List<string>();
+
+            for (int i = 0; i < gridCnt; i++)
+            {
+                DataGridViewTextBoxColumn column = new DataGridViewTextBoxColumn();
+                column.HeaderText = string.Format("条{0}", startGrid + i);
+                dataGridView.Columns.Add(column);
+                dataGridView.Columns[i].SortMode = DataGridViewColumnSortMode.Programmatic;
+                strs.Add("");
+            }
+            dataGridView.RowHeadersWidth = 80;
+            for (int i = 0; i < 16; i++)
+            {
+                dataGridView.Rows.Add(strs.ToArray());
+                dataGridView.Rows[i].HeaderCell.Value = string.Format("行{0}", i + 1);
+            }
+        }
+
+        public void UpdateDataGridView(int gridID, List<string>barcode)
+        {
+            for (int i = 0; i < barcode.Count; i++ )
+            {
+                int col = gridID - GlobalVars.Instance.StartGridID;
+                var cell = dataGridView.Rows[i].Cells[col];
+                cell.Value = barcode[i];
+                System.Drawing.Color foreColor = System.Drawing.Color.Green;
+                string curBarcode = barcode[i];
+                if( curBarcode == "***")
+                {
+                    foreColor = System.Drawing.Color.Red;
+                }
+                else if( curBarcode == "$$$")
+                {
+                    foreColor = System.Drawing.Color.Orange;
+                }
+                cell.Style.ForeColor = foreColor;
+            }
         }
 
         private void SetErrorInfo(string info)
@@ -119,14 +156,9 @@ namespace FastPooling
             bool bok = true;
             try
             {
-                scanInfo.GridID = grid;
-                scanInfo.SamplesInfo.Clear();
-                for (int i = 0; i < barcodes.Count;i++ )
-                {
-                    scanInfo.SamplesInfo.Add(new SampleInfo(i, barcodes[i]));
-                }
-                CheckBarcodes(grid, barcodes);
                 GlobalVars.Instance.SetBarcodes(grid, barcodes);
+                UpdateDataGridView(grid,barcodes);
+                CheckBarcodes(grid, barcodes);
             }
             catch (Exception ex)
             {
@@ -148,6 +180,14 @@ namespace FastPooling
             if(bok)
                 Helper.CloseWaiter("Feed");
           
+        }
+
+        private void UpdateDateGridView()
+        {
+            dataGridView.AllowUserToAddRows = false;
+            dataGridView.EnableHeadersVisualStyles = false;
+            dataGridView.Columns.Clear();
+            List<string> strs = new List<string>();
         }
 
         private bool NeedGenerateWorklist(int curGrid)

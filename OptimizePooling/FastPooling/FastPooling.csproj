@@ -40,6 +40,8 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -51,6 +53,7 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -61,7 +64,6 @@
     <Compile Include="globals.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="interprocess.cs" />
-    <Compile Include="SampleInfo.cs" />
     <Compile Include="ScanInfo.cs" />
     <Compile Include="strings.Designer.cs">
       <AutoGen>True</AutoGen>
