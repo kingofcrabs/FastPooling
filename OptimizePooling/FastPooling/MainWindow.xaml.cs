@@ -22,7 +22,6 @@ namespace FastPooling
             InitializeComponent();
             this.Loaded += MainWindow_Loaded;
             this.Closing += MainWindow_Closing;
-            
         }
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -39,6 +38,7 @@ namespace FastPooling
         private void btnSetGridCnt_Click(object sender, RoutedEventArgs e)
         {
             string sGridCnt = txtGridCnt.Text;
+            
             if (sGridCnt == "")
             {
                 SetErrorInfo("Grid数不得为空！");
@@ -51,8 +51,14 @@ namespace FastPooling
                 SetErrorInfo("Grid数必须在1~10之间！");
                 return;
             }
+            int neededDstWell = worklist.CalculateNeededDstWell(gridCnt * 16);
+            if(worklist.curDstWellStartIndex + neededDstWell >= 96)
+            {
+                SetErrorInfo(string.Format("Grid数太多，一共需要{0}个目标孔做Pooling！", neededDstWell));
+                return;
+            }
             Helper.WriteGridCnt(gridCnt);
-            Helper.CloseWaiter("Feed");
+            Helper.CloseWaiter(GlobalVars.Instance.WaiterName);
             EnableControls(false);
             InitDataGridView(gridCnt);
         }
@@ -175,11 +181,9 @@ namespace FastPooling
                 File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
                 File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
             }
-
             Helper.WriteResult(bok);
             if(bok)
-                Helper.CloseWaiter("Feed");
-          
+                Helper.CloseWaiter(GlobalVars.Instance.WaiterName);
         }
 
         private void UpdateDateGridView()
@@ -254,9 +258,6 @@ namespace FastPooling
             Helper.CloseWaiter(strings.WaiterName);
             Helper.WriteRetry(true);
         }
-
-      
-
        
     }
 

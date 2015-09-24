@@ -1,5 +1,5 @@
-F6551E90
-20150919_160446 No log in       
+16A0D2DA
+20150924_090808 No log in       
                                                                                                                                 
 No user logged in                                                                                                               
 --{ RES }--
@@ -120,15 +120,20 @@ V;200
 998;1;
 996;0;0;
 --{ RPG }--
-BeginLoop("10","EndlessPooling");
-Execute("C:\barcodeGuard\Guarder.exe",0,"",2);
-Execute("C:\notifier\Notifier.exe waitSetting",2,"",2);
-ImportVariable(gridCount,"D:\projects\errorCheck\BarcodeGuard\Guarder\bin\Release\Grids\gridsCount.txt",0,"0",0,1,0,1,0);
+Variable(workingFolder,"C:\FastPooling\bins\",0,"",0,1.000000,10.000000,1,2,0,0);
+Variable(outputFolder,"C:\FastPooling\Output\",0,"",0,1.000000,10.000000,1,2,0,0);
+Variable(simulatePosIDExe,"~workingFolder~SimulatePosID.exe",0,"",0,1.000000,10.000000,1,2,0,0);
+Variable(serverExe,"~workingFolder~FastPooling",0,"",0,1.000000,10.000000,1,2,0,0);
+Variable(NotifierExe,"~workingFolder~Notifier.exe",0,"",0,1.000000,10.000000,1,2,0,0);
+Variable(startGrid,"5",0,"",0,1.000000,10.000000,0,2,0,0);
+BeginLoop("10","EndlessLoop");
+Execute("~serverExe~",0,"",2);
+Execute("~workingFolder~FeedMe.exe Feed",2,"",2);
+ImportVariable(gridCount,"~outputFolder~gridsCount.txt",0,"0",0,1,0,1,0);
 BeginLoop("gridCount","scanBarcodes");
 Comment("retry");
+Variable(grid2Scan,"LOOP_scanBarcodes + startGrid",0,"",0,1.000000,10.000000,0,2,0,0);
 Group("POSID");
-ImportVariable(grid2Scan,"D:\projects\errorCheck\BarcodeGuard\Guarder\bin\Release\Grids\~LOOP_scanBarcodes~.txt",0,"0",0,1,0,1,0);
-If("grid2Scan",0,"0","scan finish");
 IfThen("grid2Scan",0,"5");
 Comment("write POSID scan command for grid 5 here");
 Else();
@@ -139,13 +144,24 @@ Else();
 EndIf();
 Comment("write all other possible grids' posid command here");
 GroupEnd();
-Execute("C:\notifier\Notifier.exe ~LOOP_scanBarcodes~",2,"",2);
-ImportVariable(result,"C:\barcodeGuard\result.txt",1,"False",0,1,0,1,0);
-ImportVariable(retryOrIgnore,"C:\barcodeGuard\retryOrIgnore.txt",1,"Retry",0,1,0,1,0);
+Comment("simulate posID's scan work");
+Execute("~SimulatePosIDExe~ ~grid2Scan~",2,"",2);
+Comment("notify the server scan is finished, read the result");
+Execute("~NotifierExe~ ~grid2Scan~",2,"",2);
+Comment("wait server's feed back");
+Execute("~workingFolder~FeedMe.exe Feed",2,"",2);
+Comment("if server say it is ok, scan next grid");
+ImportVariable(result,"~outputFolder~\result.txt",1,"False",0,1,0,1,0);
+ImportVariable(retryOrIgnore,"~outputFolder~retry.txt",1,"Retry",0,1,0,1,0);
 If("result",0,"True","thisGridFinishes");
+Comment("if not ok, repeat ");
 If("result",0,"False","retry");
 Comment("thisGridFinishes");
 EndLoop();
-Comment("ask for confirm");
-Comment("pooling");
+Comment("next batch");
+Variable(doNextBatch,"False",1,"Next batch?",0,1.000000,10.000000,1,2,1,0);
+IfThen("doNextBatch",0,"False");
+EndScript(0);
+Else();
+EndIf();
 EndLoop();

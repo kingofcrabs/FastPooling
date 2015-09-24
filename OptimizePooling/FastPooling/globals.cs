@@ -31,6 +31,15 @@ namespace FastPooling
             }
         }
 
+        public string WaiterName
+        {
+            get
+            {
+                return "FeedMe";
+            }
+             
+        }
+
         public GlobalVars()
         {
             pos_BarcodeDict = new Dictionary<Position, string>();

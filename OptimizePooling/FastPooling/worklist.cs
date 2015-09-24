@@ -11,7 +11,7 @@ namespace OptimizePooling
 {
     class worklist
     {
-        static int curDstWellStartIndex = 0;
+        public static int curDstWellStartIndex = 0;
         public static int curBatchID = 1;
         public List<string> Generate(int sampleCount,ref List<string> barcodesTrace)
         {
@@ -32,7 +32,7 @@ namespace OptimizePooling
             //process remaining
             List<PipettingInfo> fragmentsPipettingInfo = new List<PipettingInfo>();
             int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
-            int dstWellCntNeeded = (remainingCnt + GlobalVars.Instance.PoolingCnt -1)/ GlobalVars.Instance.PoolingCnt;
+            int dstWellCntNeeded = CalculateNeededDstWell(remainingCnt);
             for (int wellIndex = 0; wellIndex < remainingCnt; wellIndex++ )
             {
                 int srcGridID = startGridID + wellIndex / 16;
@@ -56,6 +56,10 @@ namespace OptimizePooling
             return strs;
         }
 
+        static public int CalculateNeededDstWell(int cnt)
+        {
+            return (cnt + GlobalVars.Instance.PoolingCnt -1)/ GlobalVars.Instance.PoolingCnt;
+        }
         //get source info for all the pipetting infos.
         private List<string> GetBarcodesSourceInfo(List<PipettingInfo> allPipettingInfo)
         {

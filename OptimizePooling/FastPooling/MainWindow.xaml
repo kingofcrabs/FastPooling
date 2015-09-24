@@ -5,9 +5,7 @@
         xmlns:wfi = "clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" 
         Title="Fast Pooling" Height="670" Width="831.343">
-
     <Grid>
-
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
             <RowDefinition Height="*"/>
@@ -20,7 +18,6 @@
                 <TextBox Name="txtGridCnt" HorizontalAlignment="Left" Height="24" Margin="55,13,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="132"/>
                 <Label Content="轮次：" HorizontalAlignment="Left" Margin="385,11,0,0" VerticalAlignment="Top"/>
                 <TextBox IsReadOnly="True" Name="txtRound" HorizontalAlignment="Left" Height="24" Margin="426,12,0,0" TextWrapping="Wrap" Text="{Binding Path=BatchID}" VerticalAlignment="Top" Width="48"/>
-
             </Grid>
         </GroupBox>
         <Grid Grid.Row="1">
