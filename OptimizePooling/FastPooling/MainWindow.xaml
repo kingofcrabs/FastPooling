@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:FastPooling"
         xmlns:wfi = "clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" 
-        Title="Fast Pooling" Height="670" Width="831.343">
+        Title="Fast Pooling" Height="690" Width="831.343">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>

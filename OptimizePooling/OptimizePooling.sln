@@ -5,8 +5,6 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastPooling", "FastPooling\FastPooling.csproj", "{2D076172-F89A-431F-9B7B-0D9A04C95E1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FeedMe", "FeedMe\FeedMe.csproj", "{67421AF4-046A-4FAB-8AB5-17A77FAB58CD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimulatePosID", "SimulatePosID\SimulatePosID.csproj", "{DBBD1A86-7DEB-428E-A7FA-9221869A0D32}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Testharness", "Testharness\Testharness4FastPooling\Testharness.pyproj", "{4EE22A4C-DB73-440E-8A80-AF4B918466C6}"
@@ -21,10 +19,6 @@ Global
 		{2D076172-F89A-431F-9B7B-0D9A04C95E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D076172-F89A-431F-9B7B-0D9A04C95E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D076172-F89A-431F-9B7B-0D9A04C95E1D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{67421AF4-046A-4FAB-8AB5-17A77FAB58CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{67421AF4-046A-4FAB-8AB5-17A77FAB58CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{67421AF4-046A-4FAB-8AB5-17A77FAB58CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{67421AF4-046A-4FAB-8AB5-17A77FAB58CD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DBBD1A86-7DEB-428E-A7FA-9221869A0D32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DBBD1A86-7DEB-428E-A7FA-9221869A0D32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBBD1A86-7DEB-428E-A7FA-9221869A0D32}.Release|Any CPU.ActiveCfg = Release|Any CPU

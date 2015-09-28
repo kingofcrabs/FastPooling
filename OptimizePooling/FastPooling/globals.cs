@@ -20,7 +20,7 @@ namespace FastPooling
         private int startGridID = int.Parse(ConfigurationManager.AppSettings["startGrid"]);
         #endregion
 
-        private int batchID = 1;
+        private int batchID = 0;
         public static GlobalVars Instance
         {
             get

@@ -20,8 +20,10 @@ namespace FastPooling
         public MainWindow()
         {
             InitializeComponent();
+            txtRound.DataContext = GlobalVars.Instance;
             this.Loaded += MainWindow_Loaded;
             this.Closing += MainWindow_Closing;
+            dataGridView.Visible = false;
         }
 
         void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -32,7 +34,6 @@ namespace FastPooling
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             CreateNamedPipeServer();
-            txtRound.DataContext = GlobalVars.Instance;
         }
 
         private void btnSetGridCnt_Click(object sender, RoutedEventArgs e)
@@ -150,6 +151,7 @@ namespace FastPooling
 
             if(sCommand.Contains("NewBatch"))
             {
+                GlobalVars.Instance.BatchID++;
                 EnableControls(true);
                 return;
             }
