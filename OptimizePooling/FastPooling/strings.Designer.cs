@@ -70,6 +70,15 @@ namespace FastPooling {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 0.02.
+        /// </summary>
+        internal static string version {
+            get {
+                return ResourceManager.GetString("version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feed.
         /// </summary>
         internal static string WaiterName {

@@ -5,6 +5,7 @@
         xmlns:wfi = "clr-namespace:System.Windows.Forms.Integration;assembly=WindowsFormsIntegration"
         xmlns:wf ="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms" 
         Title="Fast Pooling" Height="690" Width="831.343">
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
@@ -20,6 +21,7 @@
                 <TextBox IsReadOnly="True" Name="txtRound" HorizontalAlignment="Left" Height="24" Margin="426,12,0,0" TextWrapping="Wrap" Text="{Binding Path=BatchID}" VerticalAlignment="Top" Width="48"/>
             </Grid>
         </GroupBox>
+   
         <Grid Grid.Row="1">
                 <wfi:WindowsFormsHost  TabIndex="10">
                     <wf:DataGridView x:Name="dataGridView" AllowUserToAddRows="False" />
@@ -45,6 +47,7 @@
 
             <TextBox IsReadOnly="True" Name="txtLog" HorizontalAlignment="Stretch"  Margin="5,0,5,5" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch"  Grid.Column="3" Grid.Row="1"/>
         </Grid>
+        <Label Content="version" Name="lblVersion" HorizontalAlignment="Right" Margin="0,26,60,0" VerticalAlignment="Top" RenderTransformOrigin="2.177,-0.54"/>
 
     </Grid>
 </Window>

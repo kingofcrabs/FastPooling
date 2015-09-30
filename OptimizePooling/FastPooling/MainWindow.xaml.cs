@@ -33,6 +33,7 @@ namespace FastPooling
 
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            lblVersion.Content = "版本号：" + strings.version;
             CreateNamedPipeServer();
         }
 
@@ -260,7 +261,8 @@ namespace FastPooling
             Helper.CloseWaiter(strings.WaiterName);
             Helper.WriteRetry(true);
         }
-       
+
+
     }
 
     

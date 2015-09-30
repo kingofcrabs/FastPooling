@@ -18,6 +18,8 @@ namespace FastPooling
         private string dstLabware = GetSetting("dstLabware");
         private int poolingCnt = int.Parse(GetSetting("poolingCnt"));
         private int startGridID = int.Parse(ConfigurationManager.AppSettings["startGrid"]);
+        private string ngetiveLabware = ConfigurationManager.AppSettings["negtiveLabware"];
+        private int negtiveStartWellID = int.Parse(ConfigurationManager.AppSettings["negtiveStartWell"]);
         #endregion
 
         private int batchID = 0;
@@ -28,6 +30,22 @@ namespace FastPooling
                 if (instance == null)
                     instance = new GlobalVars();
                 return instance;
+            }
+        }
+
+        public string NegtiveLabware
+        {
+            get
+            {
+                return NegtiveLabware;
+            }
+        }
+
+        public int NegtiveStartWellID
+        {
+            get
+            {
+                return negtiveStartWellID;
             }
         }
 

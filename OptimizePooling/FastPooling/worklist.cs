@@ -33,11 +33,12 @@ namespace OptimizePooling
             List<PipettingInfo> fragmentsPipettingInfo = new List<PipettingInfo>();
             int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
             int dstWellCntNeeded = CalculateNeededDstWell(remainingCnt);
+            int additionalWellCnt = dstWellCntNeeded * GlobalVars.Instance.PoolingCnt - remainingCnt;
             for (int wellIndex = 0; wellIndex < remainingCnt; wellIndex++ )
             {
                 int srcGridID = startGridID + wellIndex / 16;
                 int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
-                int dstWellIndex = wellIndex - wellIndex / (GlobalVars.Instance.PoolingCnt) *GlobalVars.Instance.PoolingCnt;
+                int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
                 
                 fragmentsPipettingInfo.Add(new PipettingInfo(
                     string.Format("grid{0}", srcGridID),
@@ -46,6 +47,22 @@ namespace OptimizePooling
                     GlobalVars.Instance.DstLabware,
                     curDstWellStartIndex + dstWellIndex + 1,
                      GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)]));
+
+                if(wellIndex == remainingCnt -1) //add additional wells
+                {
+                    for(int i = 0; i< additionalWellCnt; i++)
+                    {
+                        int addtionalDstWellIndex = wellIndex + i;
+                        addtionalDstWellIndex = addtionalDstWellIndex - addtionalDstWellIndex / dstWellCntNeeded * dstWellCntNeeded;
+                        fragmentsPipettingInfo.Add(new PipettingInfo(
+                            GlobalVars.Instance.NegtiveLabware,
+                            GlobalVars.Instance.NegtiveStartWellID + i,
+                            GlobalVars.Instance.PipettingVolume,
+                            GlobalVars.Instance.DstLabware,
+                            curDstWellStartIndex + addtionalDstWellIndex + 1,
+                            "negtive"));
+                    }
+                }
             }
 
             curDstWellStartIndex += dstWellCntNeeded;

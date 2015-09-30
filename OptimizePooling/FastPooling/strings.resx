@@ -120,6 +120,9 @@
   <data name="NotifierName" xml:space="preserve">
     <value>ReadPosIDBarcode</value>
   </data>
+  <data name="version" xml:space="preserve">
+    <value>0.02</value>
+  </data>
   <data name="WaiterName" xml:space="preserve">
     <value>Feed</value>
   </data>
