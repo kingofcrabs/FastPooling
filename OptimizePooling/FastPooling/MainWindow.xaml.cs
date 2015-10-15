@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace FastPooling
 {
@@ -43,24 +44,24 @@ namespace FastPooling
             
             if (sGridCnt == "")
             {
-                SetErrorInfo("Grid数不得为空！");
+                AddErrorInfo("Grid数不得为空！");
                 return;
             }
             int gridCnt = 0;
             bool bOk = int.TryParse(sGridCnt, out gridCnt);
             if (gridCnt < 1 || gridCnt > 10)
             {
-                SetErrorInfo("Grid数必须在1~10之间！");
+                AddErrorInfo("Grid数必须在1~10之间！");
                 return;
             }
             int neededDstWell = worklist.CalculateNeededDstWell(gridCnt * 16);
             if(worklist.curDstWellStartIndex + neededDstWell >= 96)
             {
-                SetErrorInfo(string.Format("Grid数太多，一共需要{0}个目标孔做Pooling！", neededDstWell));
+                AddErrorInfo(string.Format("Grid数太多，一共需要{0}个目标孔做Pooling！", neededDstWell));
                 return;
             }
             Helper.WriteGridCnt(gridCnt);
-            Helper.CloseWaiter(GlobalVars.Instance.WaiterName);
+            Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
             InitDataGridView(gridCnt);
         }
@@ -110,11 +111,32 @@ namespace FastPooling
             }
         }
 
-        private void SetErrorInfo(string info)
+        private void AddWarning(string warning)
         {
-            txtInfo.Text = info;
-            txtInfo.Foreground = new SolidColorBrush(Colors.Red);
-            txtInfo.Background = new SolidColorBrush(Colors.White);
+            richTxtInfo.SelectionBrush = Brushes.Orange;
+            richTxtInfo.AppendText(warning);
+
+        }
+       
+        private void AddColorText(string txt, Brush brush)
+        {
+            TextRange tr = new TextRange(richTxtInfo.Document.ContentEnd,richTxtInfo.Document.ContentEnd);
+            tr.Text = txt + "\r";
+            tr.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
+        }
+
+       
+
+        private void AddErrorInfo(string info)
+        {
+            AddColorText(info, Brushes.Red);
+            richTxtInfo.Refresh();
+        }
+
+        private void AddInfo(string info, bool success = true)
+        {
+            var brush =success ? Brushes.DarkGreen : Brushes.Blue;
+            AddColorText(info, brush);
         }
 
         private void EnableControls(bool bEnable)
@@ -138,7 +160,7 @@ namespace FastPooling
             }
             catch (Exception ex)
             {
-                SetErrorInfo(ex.Message);
+                AddErrorInfo(ex.Message);
             }
         }
 
@@ -168,12 +190,14 @@ namespace FastPooling
                 GlobalVars.Instance.SetBarcodes(grid, barcodes);
                 UpdateDataGridView(grid,barcodes);
                 CheckBarcodes(grid, barcodes);
+                AddInfo(string.Format("Grid{0}条码检查通过", grid));
             }
             catch (Exception ex)
             {
-                SetErrorInfo(ex.Message);
+                AddErrorInfo(ex.Message);
                 bok = false;
             }
+            
             if(NeedGenerateWorklist(grid))
             {
                 txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!",GlobalVars.Instance.pos_BarcodeDict.Count));
@@ -186,7 +210,7 @@ namespace FastPooling
             }
             Helper.WriteResult(bok);
             if(bok)
-                Helper.CloseWaiter(GlobalVars.Instance.WaiterName);
+                Helper.CloseWaiter(strings.waiterName);
         }
 
         private void UpdateDateGridView()
@@ -213,7 +237,7 @@ namespace FastPooling
             {
                 if(NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
                 {
-                    ShowWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
+                    AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
                 }
                 else
                 {
@@ -222,13 +246,7 @@ namespace FastPooling
             }
         }
 
-        private void ShowWarning(string warning)
-        {
-            txtInfo.Text = warning;
-            txtInfo.Foreground = Brushes.Orange;
-            txtInfo.Background = Brushes.White;
-        }
-       
+ 
         private void ReadBarcode(ref int grid, List<string> barcodes)
         {
             string posIDFile = ConfigurationManager.AppSettings["posIDFile"];
@@ -257,13 +275,22 @@ namespace FastPooling
 
         private void btnRetry_Click(object sender, RoutedEventArgs e)
         {
-            txtLog.AppendText("retry pressed!\r\n");
-            Helper.CloseWaiter(strings.WaiterName);
+            AddInfo("按下重试按钮", false);
+            Helper.CloseWaiter(strings.waiterName);
             Helper.WriteRetry(true);
         }
-
-
     }
 
-    
+    public static class ExtensionMethods
+    {
+
+        private static Action EmptyDelegate = delegate() { };
+        public static void Refresh(this UIElement uiElement)
+        {
+
+            uiElement.Dispatcher.Invoke(DispatcherPriority.Render, EmptyDelegate);
+
+        }
+
+    }
 }

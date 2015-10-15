@@ -21,11 +21,11 @@
                 <TextBox IsReadOnly="True" Name="txtRound" HorizontalAlignment="Left" Height="24" Margin="426,12,0,0" TextWrapping="Wrap" Text="{Binding Path=BatchID}" VerticalAlignment="Top" Width="48"/>
             </Grid>
         </GroupBox>
-   
+
         <Grid Grid.Row="1">
-                <wfi:WindowsFormsHost  TabIndex="10">
-                    <wf:DataGridView x:Name="dataGridView" AllowUserToAddRows="False" />
-                </wfi:WindowsFormsHost>
+            <wfi:WindowsFormsHost  TabIndex="10">
+                <wf:DataGridView x:Name="dataGridView" AllowUserToAddRows="False" />
+            </wfi:WindowsFormsHost>
         </Grid>
 
         <Grid Grid.Row="2">
@@ -38,14 +38,14 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="100"/>
                 <ColumnDefinition Width="*"/>
-                
+
             </Grid.ColumnDefinitions>
-            <Label Content="提示：" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Grid.Row="0"/>
-            <TextBox Name="txtInfo" Margin="0,0,5,5" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"   Grid.Row="1" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch" />
+            <RichTextBox Name="richTxtInfo" Margin="0,0,5,5" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"   Grid.Row="1" VerticalAlignment="Stretch" />
             <Button Content="重试" Name="btnRetry" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="100" Height="30" Click="btnRetry_Click"/>
-            <Label Content="日志：" HorizontalAlignment="Left" Margin="0,4,0,0" VerticalAlignment="Top" Grid.Column="3" Height="26" Width="46"/>
+            <Label Content="日志：" HorizontalAlignment="Left" Margin="4,0,0,0" VerticalAlignment="Top" Height="26" Width="46" Grid.RowSpan="2"/>
 
             <TextBox IsReadOnly="True" Name="txtLog" HorizontalAlignment="Stretch"  Margin="5,0,5,5" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch"  Grid.Column="3" Grid.Row="1"/>
+            <Label Content="命令：" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Height="26" Width="46" Grid.Column="3"/>
         </Grid>
         <Label Content="version" Name="lblVersion" HorizontalAlignment="Right" Margin="0,26,60,0" VerticalAlignment="Top" RenderTransformOrigin="2.177,-0.54"/>
 

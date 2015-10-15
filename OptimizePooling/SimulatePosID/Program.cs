@@ -13,7 +13,7 @@ namespace SimulatePosID
             string gridNum = args[0];
             //6;1;16;Tube Eppendorf 16 Pos;Labware4;968/002718;15P0000016-A
             List<string> strs = new List<string>() {"FC70413C" };
-            if(gridNum != "8")
+            if (gridNum != "8" || args.Length != 1)
             {
                 for (int i = 0; i < 16; i++)
                 {

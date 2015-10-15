@@ -1,13 +1,25 @@
 ﻿from subprocess import call
+firstTimeError = True;
 def ScanBarcode( grid):
+    global firstTimeError    
     "scan barcode for certain grid"
     scanResult = True;
     sBinFolder = "C:\\FastPooling\\bins\\";
     while True:
-        call([sBinFolder + "SimulatePosID.exe",str(grid)]);
+        if( grid != 8):
+            call([sBinFolder + "SimulatePosID.exe",str(grid)]);
+        else :
+            if firstTimeError:
+                call([sBinFolder + "SimulatePosID.exe",str(grid)]);
+                firstTimeError = False;
+            else:
+                call([sBinFolder + "SimulatePosID.exe",str(grid),"xx"]);
+
         call([sBinFolder + "Notifier.exe",str(grid)]); #notify main program to read barcode of grid x
         call([sBinFolder + "FeedMe.exe","FeedMe"]);
-        resultFile = open("c:\\FastPooling\\Output\\result.txt");
+        #F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt
+        #resultFile = open("c:\\FastPooling\\Output\\result.txt");
+        resultFile = open("F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt");
         result = resultFile.read();
         resultFile.close();
         if result == "True":

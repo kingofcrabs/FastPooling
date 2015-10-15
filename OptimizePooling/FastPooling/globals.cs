@@ -37,7 +37,7 @@ namespace FastPooling
         {
             get
             {
-                return NegtiveLabware;
+                return ngetiveLabware;
             }
         }
 
@@ -49,14 +49,7 @@ namespace FastPooling
             }
         }
 
-        public string WaiterName
-        {
-            get
-            {
-                return "FeedMe";
-            }
-             
-        }
+      
 
         public GlobalVars()
         {
