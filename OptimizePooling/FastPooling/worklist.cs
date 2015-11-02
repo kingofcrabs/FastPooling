@@ -104,8 +104,34 @@ namespace OptimizePooling
         private List<string> Format(List<PipettingInfo> pipettingInfos)
         {
             List<string> strs = new List<string>();
-            pipettingInfos.ForEach(x => strs.Add(Format(x)));
+            pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
             return strs;
+        }
+
+        private List<string> GenerateAspAndDisp(PipettingInfo x)
+        {
+            string asp = GetAspirate(x.srcLabware, x.srcWellID, x.volume);
+            string disp = GetDispense(x.dstLabware, x.dstWellID, x.volume);
+            return new List<string>() { asp, disp,"W;" };
+        }
+
+
+        private string GetAspirate(string sLabware, int srcWellID, double vol)
+        {
+            string sAspirate = string.Format("A;{0};;;{1};;{2};;;",
+                         sLabware,
+                         srcWellID,
+                         vol);
+            return sAspirate;
+        }
+
+        private string GetDispense(string sLabware, int dstWellID, double vol)
+        {
+            string sDispense = string.Format("D;{0};;;{1};;{2};;;",
+              sLabware,
+              dstWellID,
+              vol);
+            return sDispense;
         }
 
         private string Format(PipettingInfo x)
