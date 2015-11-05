@@ -16,6 +16,7 @@ namespace FastPooling
         #region configures
         private double volume = double.Parse(GetSetting("volumeUL"));
         private string dstLabware = GetSetting("dstLabware");
+        private string dstLabware2 = GetSetting("dstLabware2");
         private int poolingCnt = int.Parse(GetSetting("poolingCnt"));
         private int startGridID = int.Parse(ConfigurationManager.AppSettings["startGrid"]);
         private string ngetiveLabware = ConfigurationManager.AppSettings["negtiveLabware"];
@@ -54,6 +55,14 @@ namespace FastPooling
         public GlobalVars()
         {
             pos_BarcodeDict = new Dictionary<Position, string>();
+        }
+
+        public string DstLabware2
+        {
+            get
+            {
+                return dstLabware2;
+            }
         }
 
         public string DstLabware
@@ -124,5 +133,7 @@ namespace FastPooling
         {
             pos_BarcodeDict.Clear();
         }
+
+        
     }
 }

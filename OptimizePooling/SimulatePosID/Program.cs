@@ -37,7 +37,8 @@ namespace SimulatePosID
                     strs.Add(sLine);
                 }
             }
-            
+            if (!Directory.Exists(@"C:\posID\"))
+                Directory.CreateDirectory(@"C:\posID\");
             File.WriteAllLines(@"C:\posID\scan.csv",strs);
         }
     }

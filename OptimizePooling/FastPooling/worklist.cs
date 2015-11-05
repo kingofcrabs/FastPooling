@@ -13,9 +13,91 @@ namespace OptimizePooling
     {
         public static int curDstWellStartIndex = 0;
         public static int curBatchID = 1;
-        public List<string> Generate(int sampleCount,ref List<string> barcodesTrace)
-        {
+        public static int totalPoolingSmpCnt = 0;
+        public static int totalNormalSmpCnt = 0;
+        public static int finishedSmpCnt = 0;
+        public static bool bUseTwoPlates = false;
 
+
+        public List<string> Generate(int sampleCount, ref List<string> barcodesTrace)
+        {
+            if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
+            {
+                throw new Exception(string.Format("样品总数达到{0},超过设定值{1}",finishedSmpCnt + sampleCount,totalPoolingSmpCnt + totalNormalSmpCnt));
+            }
+
+            int poolingSampleCnt = sampleCount;
+            int normalSampleCnt = 0; 
+            if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt && finishedSmpCnt < totalPoolingSmpCnt) //has normal sample, but not all normal sample
+            {
+                poolingSampleCnt = totalPoolingSmpCnt - finishedSmpCnt;
+                normalSampleCnt = finishedSmpCnt + sampleCount - totalPoolingSmpCnt;
+            }
+
+            if( finishedSmpCnt > totalPoolingSmpCnt)
+            {
+                poolingSampleCnt = 0;
+                normalSampleCnt = sampleCount;
+            }
+            finishedSmpCnt += sampleCount;
+
+            List<string> strs = new List<string>();
+            List<string> poolingBarcodeTrace = new List<string>();
+            List<string> normalBarcodeTrace = new List<string>();
+
+            if(poolingSampleCnt > 0)
+            {
+                strs.AddRange(GeneratePooling(poolingSampleCnt,ref poolingBarcodeTrace));
+                barcodesTrace.AddRange(poolingBarcodeTrace);
+            }
+            if( normalSampleCnt > 0)
+            {
+                strs.AddRange(GenerateNormal(poolingSampleCnt,normalSampleCnt,ref normalBarcodeTrace));
+                barcodesTrace.AddRange(normalBarcodeTrace);
+            }
+            curBatchID++;
+            return strs;
+        }
+
+        private List<string> GenerateNormal(int poolingSampleCnt, int normalSampleCnt, ref List<string> normalBarcodeTrace)
+        {
+            int startGridID = GlobalVars.Instance.StartGridID;// 
+            List<PipettingInfo> normalPipettings = new List<PipettingInfo>();
+            for (int i = 0; i < normalSampleCnt; i++)
+            {
+                int wellIndex = i + poolingSampleCnt;
+                int srcGridID = startGridID + wellIndex / 16;
+                int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
+                
+                string sGrid = string.Format("grid{0}", srcGridID);
+                int dstWellID = curDstWellStartIndex + i + 1;
+                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                double volume = Math.Round(GlobalVars.Instance.PipettingVolume / 2, 1);
+                normalPipettings.Add(new PipettingInfo(
+                    sGrid,
+                    wellIndexInGrid + 1,
+                    volume,
+                    GlobalVars.Instance.DstLabware,
+                    MapDstWellID(dstWellID),
+                    barcode));
+                normalPipettings.Add(new PipettingInfo(
+                   sGrid,
+                   wellIndexInGrid + 1,
+                   volume,
+                   GetSecondSliceDstLabware(),
+                   MapDstWellID(dstWellID,false),
+                   barcode));
+            }
+            curDstWellStartIndex += normalSampleCnt;
+            List<string> strs = new List<string>();
+            strs.AddRange(Format(normalPipettings));
+            normalBarcodeTrace = GetBarcodesSourceInfo(normalPipettings);
+            return strs;
+        }
+
+
+        public List<string> GeneratePooling(int sampleCount,ref List<string> barcodesTrace)
+        {
             //first process batchs,48 per batch for 6 pooling into 1, 64 for 8 pooling into 1,etc.
             int sampleCntPerBatch = 8 * GlobalVars.Instance.PoolingCnt;
             int batchCnt = sampleCount / sampleCntPerBatch;
@@ -39,40 +121,34 @@ namespace OptimizePooling
                 int srcGridID = startGridID + wellIndex / 16;
                 int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
                 int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
-                
+                string sGrid = string.Format("grid{0}", srcGridID);
+                int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
+                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                double volume = Math.Round(GlobalVars.Instance.PipettingVolume/2,1);
                 fragmentsPipettingInfo.Add(new PipettingInfo(
-                    string.Format("grid{0}", srcGridID),
+                    sGrid,
                     wellIndexInGrid + 1,
-                    GlobalVars.Instance.PipettingVolume,
+                    volume,
                     GlobalVars.Instance.DstLabware,
-                    curDstWellStartIndex + dstWellIndex + 1,
-                     GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)]));
-
-                if(wellIndex == remainingCnt -1) //add additional wells
-                {
-                    for(int i = 0; i< additionalWellCnt; i++)
-                    {
-                        int addtionalDstWellIndex = wellIndex + i;
-                        addtionalDstWellIndex = addtionalDstWellIndex - addtionalDstWellIndex / dstWellCntNeeded * dstWellCntNeeded;
-                        fragmentsPipettingInfo.Add(new PipettingInfo(
-                            GlobalVars.Instance.NegtiveLabware,
-                            GlobalVars.Instance.NegtiveStartWellID + i,
-                            GlobalVars.Instance.PipettingVolume,
-                            GlobalVars.Instance.DstLabware,
-                            curDstWellStartIndex + addtionalDstWellIndex + 1,
-                            "negtive"));
-                    }
-                }
+                    MapDstWellID(dstWellID),
+                    barcode ));
+                fragmentsPipettingInfo.Add(new PipettingInfo(
+                   sGrid,
+                   wellIndexInGrid + 1,
+                   volume,
+                   GetSecondSliceDstLabware(),
+                   MapDstWellID(dstWellID,false),
+                   barcode));
             }
 
             curDstWellStartIndex += dstWellCntNeeded;
             strs.AddRange(Format(fragmentsPipettingInfo));
             batchPipettingInfos.AddRange(fragmentsPipettingInfo);
             barcodesTrace = GetBarcodesSourceInfo(batchPipettingInfos);
-            curBatchID++;
             return strs;
         }
 
+    
         static public int CalculateNeededDstWell(int cnt)
         {
             return (cnt + GlobalVars.Instance.PoolingCnt -1)/ GlobalVars.Instance.PoolingCnt;
@@ -157,18 +233,52 @@ namespace OptimizePooling
                     int dstWellIndex = wellIndex;
                     if (dstWellIndex >= 8)
                         dstWellIndex -= 8;
-                    pipettingInfos.Add(new PipettingInfo(string.Format("grid{0}", srcGridID),
+                    string sGrid = string.Format("grid{0}", srcGridID);
+                    double volume = Math.Round(GlobalVars.Instance.PipettingVolume/2,1);
+                    int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
+                    string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndex)];
+                    pipettingInfos.Add(new PipettingInfo(sGrid,
                         wellIndex + 1,
-                        GlobalVars.Instance.PipettingVolume,
+                        volume,
                         GlobalVars.Instance.DstLabware,
-                        curDstWellStartIndex + dstWellIndex + 1, GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndex)]));
+                        MapDstWellID(dstWellID), barcode));
+
+                    pipettingInfos.Add(new PipettingInfo(sGrid,
+                       wellIndex + 1,
+                       volume,
+                       GetSecondSliceDstLabware(),
+                       MapDstWellID(dstWellID, false), barcode));
                 }
             }
             return pipettingInfos;
         }
+        
+        private int MapDstWellID(int wellID, bool firstSlice = true)
+        {
+            //return bUseTwoPlates ? wellIndex + 8 : wellIndex;
+            if(bUseTwoPlates)
+                return wellID;
+            int columnIndex = (wellID-1) / 8;
+            int wellIDInColumn = wellID - columnIndex * 8;
+            int mappedWellID = columnIndex * 16 + wellIDInColumn;
+            if (!firstSlice)
+                mappedWellID += 8;
+            return mappedWellID;
+            
+        }
 
-
+        private string GetSecondSliceDstLabware()
+        {
+            return bUseTwoPlates ? GlobalVars.Instance.DstLabware2 : GlobalVars.Instance.DstLabware;
+        }
       
+
+        internal static void SetConfig(int nPoolingSmpCnt, int nNormalSmpCnt)
+        {
+            totalPoolingSmpCnt = nPoolingSmpCnt;
+            totalNormalSmpCnt = nNormalSmpCnt;
+            bUseTwoPlates = totalPoolingSmpCnt + totalNormalSmpCnt > 48;
+        }
     }
     struct Position
     {
@@ -180,7 +290,7 @@ namespace OptimizePooling
             this.y = y;
         }
     }
-   
+  
 
     class PipettingInfo
     {
