@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace OptimizePooling
 {
+   
     class worklist
     {
         public static int curDstWellStartIndex = 0;
@@ -273,11 +274,13 @@ namespace OptimizePooling
         }
       
 
-        internal static void SetConfig(int nPoolingSmpCnt, int nNormalSmpCnt)
+        public static int SetConfig(int nPoolingSmpCnt, int nNormalSmpCnt)
         {
             totalPoolingSmpCnt = nPoolingSmpCnt;
             totalNormalSmpCnt = nNormalSmpCnt;
-            bUseTwoPlates = totalPoolingSmpCnt + totalNormalSmpCnt > 48;
+            int neededDstWellCnt = CalculateNeededDstWell(totalPoolingSmpCnt) + totalNormalSmpCnt;
+            bUseTwoPlates = neededDstWellCnt > 48;
+            return neededDstWellCnt;
         }
     }
     struct Position

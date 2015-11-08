@@ -113,6 +113,10 @@ namespace FastPooling
                 return startGridID;
             }
         }
+        internal void ClearBarcodes()
+        {
+            pos_BarcodeDict.Clear();
+        }
 
         internal void SetBarcodes(int gridID, List<string> barcodes)
         {

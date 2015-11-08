@@ -18,8 +18,8 @@ def ScanBarcode( grid):
         call([sBinFolder + "Notifier.exe",str(grid)]); #notify main program to read barcode of grid x
         call([sBinFolder + "FeedMe.exe","FeedMe"]);
         #F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt
-        #resultFile = open("c:\\FastPooling\\Output\\result.txt");
-        resultFile = open("F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt");
+        resultFile = open("c:\\FastPooling\\Output\\result.txt");
+        #resultFile = open("F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt");
         result = resultFile.read();
         resultFile.close();
         if result == "True":
