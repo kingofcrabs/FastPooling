@@ -81,6 +81,7 @@ namespace FastPooling
             }
             int nWells = worklist.SetConfig(poolingSmpCnt,normalSmpCnt);
             txtDstWellCnt.Text = nWells.ToString();
+            txtPlateNeeded.Text = nWells > 48 ? "2" : "1";
             Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
             InitDataGridView(12);
@@ -221,8 +222,10 @@ namespace FastPooling
                 worklist worklist = new worklist();
                 List<string> barcodesTrace = new List<string>();
                 List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref barcodesTrace);
+                List<string> rCommands = worklist.GenerateRCommand();
                 GlobalVars.Instance.ResetPosBarcode();
-                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
+                File.WriteAllLines(Folders.GetOutputFolder() + "reagent.gwl", rCommands);
+                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklist);
                 File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
 
                 Helper.WriteResult(bok);

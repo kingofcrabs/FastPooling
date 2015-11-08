@@ -4,6 +4,7 @@ using OptimizePooling;
 using FastPooling;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace UnitTests
 {
@@ -13,31 +14,58 @@ namespace UnitTests
         [TestMethod]
         public void PoolingSample16()
         {
-            //set barcodes
-            GlobalVars.Instance.ClearBarcodes();
-
-            SetBarcodes(16);
-            worklist worklist = new worklist();
-            worklist.SetConfig(16, 0);
-            List<string> barcodeTrace = new List<string>();
-            var strs = worklist.Generate(16, ref barcodeTrace);
-            //File.WriteAllLines("F:\\test\\result.gwl",strs);
-            //File.WriteAllLines("F:\\test\\barcodeTrace.txt", barcodeTrace);
+            TestPoolingSample(16);
         }
 
         [TestMethod]
         public void PoolingSample50()
         {
-            //set barcodes
-            GlobalVars.Instance.ClearBarcodes();
+            TestPoolingSample(50);
+        }
 
-            SetBarcodes(50);
+        [TestMethod]
+        public void PoolingSample300()
+        {
+            TestPoolingSample(300);
+        }
+
+
+        [TestMethod]
+        public void Normal16()
+        {
+            TestGeneric(0,16);
+        }
+
+        private void TestGeneric(int poolingCnt, int normalCnt)
+        {
+            GlobalVars.Instance.ClearBarcodes();
+            int totalCnt = poolingCnt + normalCnt;
+            SetBarcodes(totalCnt);
             worklist worklist = new worklist();
-            worklist.SetConfig(50, 0);
+            worklist.SetConfig(poolingCnt, normalCnt);
             List<string> barcodeTrace = new List<string>();
-            var strs = worklist.Generate(50, ref barcodeTrace);
-            File.WriteAllLines("F:\\test\\result.gwl", strs);
-            File.WriteAllLines("F:\\test\\barcodeTrace.txt", barcodeTrace);
+            var strs = worklist.Generate(totalCnt, ref barcodeTrace);
+            string poolingOrNormal = normalCnt == 0 ? "Pooling" : "Normal";
+            string sGwl = GetTestResultFolder() + string.Format("result{0}{1}.gwl", totalCnt, poolingOrNormal);
+            string sBarcodeTrace = GetTestResultFolder() + string.Format("barcodeTrace{0}{1}.txt", totalCnt, poolingOrNormal);
+            string sRCommandGwl = GetTestResultFolder() + string.Format("reagent{0}{1}.gwl", totalCnt, poolingOrNormal);
+            File.WriteAllLines(sRCommandGwl, worklist.GenerateRCommand());
+            File.WriteAllLines(sGwl, strs);
+            File.WriteAllLines(sBarcodeTrace, barcodeTrace);
+        }
+
+        private void TestPoolingSample(int cnt)
+        {
+            TestGeneric(cnt, 0);
+        }
+
+        static public string GetTestResultFolder()
+        {
+            string s = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            int index = s.LastIndexOf("\\");
+            s = s.Substring(0, index);
+            index = s.LastIndexOf("\\");
+            return s.Substring(0, index) + "\\testResults\\";
         }
 
         private void SetBarcodes(int nBarcodesCnt)
