@@ -382,6 +382,7 @@ namespace OptimizePooling
             totalPoolingSmpCnt = nPoolingSmpCnt;
             totalNormalSmpCnt = nNormalSmpCnt;
             finishedSmpCnt = 0;
+            curDstWellStartIndex = 0;
             int neededDstWellCnt = CalculateNeededDstWell(totalPoolingSmpCnt) + totalNormalSmpCnt + 2;
             bUseTwoPlates = neededDstWellCnt > 48;
             return neededDstWellCnt;
