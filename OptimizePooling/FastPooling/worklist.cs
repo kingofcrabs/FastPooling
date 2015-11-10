@@ -19,6 +19,13 @@ namespace OptimizePooling
         public static int finishedSmpCnt = 0;
         public static bool bUseTwoPlates = false;
 
+        public bool Finished
+        {
+            get
+            {
+                return finishedSmpCnt == totalNormalSmpCnt + totalPoolingSmpCnt + 2;
+            }
+        }
 
         public List<string> GenerateRCommand()
         {

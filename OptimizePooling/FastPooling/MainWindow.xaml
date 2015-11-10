@@ -8,25 +8,52 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="100"/>
+            <RowDefinition Height="120"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="180"/>
         </Grid.RowDefinitions>
-        <GroupBox Header="设置">
-            <Grid Name="setGrid">
-                <Button Content="确认" Name="btnSetSampleCnt" HorizontalAlignment="Left" Margin="343,13,0,0" VerticalAlignment="Top" Width="83" Click="btnSetSampleCnt_Click"/>
-                <Label Content="Pooling样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="0,12,0,0" VerticalAlignment="Top"/>
-                <TextBox Name="txtPoolingSampleCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="105,12,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
-                <Label Content="轮次：" HorizontalAlignment="Right" Margin="0,12,194,0" VerticalAlignment="Top"/>
-                <TextBox IsReadOnly="True" Name="txtRound" HorizontalAlignment="Right" Height="24" Margin="0,13,141,0" TextWrapping="Wrap" Text="{Binding Path=BatchID}" VerticalAlignment="Top" Width="48"/>
-                <Label Content="常规样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="179,12,0,0" VerticalAlignment="Top"/>
-                <TextBox x:Name="txtNormalSampleCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="266,12,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
-                <Label Content="目标孔数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="0,44,0,0" VerticalAlignment="Top"/>
-                <TextBox x:Name="txtDstWellCnt" HorizontalAlignment="Left" Height="24" Margin="105,44,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="60" IsReadOnly="True"/>
-                <Label Content="需要板数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="179,44,0,0" VerticalAlignment="Top"/>
-                <TextBox x:Name="txtPlateNeeded" HorizontalAlignment="Left" Height="24" Margin="266,44,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="60" IsReadOnly="True"/>
-            </Grid>
-        </GroupBox>
+        <Grid Name="setGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Header="总体设置">
+                <Grid>
+                    <Button Content="确认" Name="btnSetSampleCnt" HorizontalAlignment="Left" Margin="340,0,0,0" VerticalAlignment="Top" Width="83" Click="btnSetSampleCnt_Click"/>
+                    <Label Content="Pooling样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="txtPoolingSampleCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="105,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
+                    <Label Content="常规样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="179,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="txtNormalSampleCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="266,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
+                    <Button Content="确认" x:Name="btnSetSampleCnt_Copy" HorizontalAlignment="Left" Margin="340,0,0,16" VerticalAlignment="Bottom" Width="83" Click="btnSetSampleCnt_Click"/>
+
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="本轮设置" Grid.Row="1">
+                <Grid>
+                    <Label Content="本轮Grid数：" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="81"/>
+                    <TextBox x:Name="txtGridCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="105,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
+                    <Button x:Name="btnSetGrid"  Content="设置" HorizontalAlignment="Left" Margin="180,0,0,0" VerticalAlignment="Top" Width="75" Click="btnSetGrid_Click"/>
+                </Grid>
+            </GroupBox>
+            <GroupBox Header="信息" Grid.Column="1" Grid.RowSpan="2">
+                <Grid>
+                    <Label Content="轮次：" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox IsReadOnly="True" Name="txtRound" HorizontalAlignment="Left" Height="24" Margin="46,2,0,0" TextWrapping="Wrap" Text="{Binding Path=BatchID}" VerticalAlignment="Top" Width="60"/>
+                    <Label Content="目标孔数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="111,0,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="txtDstWellCnt" HorizontalAlignment="Left" Height="24" Margin="181,0,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="60" IsReadOnly="True" RenderTransformOrigin="2.55,0.458"/>
+                    <Label Content="需要板数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="111,29,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="txtPlateNeeded" HorizontalAlignment="Left" Height="24" Margin="181,29,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="60" IsReadOnly="True" RenderTransformOrigin="2.617,1.833"/>
+                    <Label Content="版本号：" FontFamily="SimHei" Name="lblVersion" HorizontalAlignment="Right" Margin="0,58,100,0" VerticalAlignment="Top" />
+                </Grid>
+            </GroupBox>
+
+
+
+        </Grid>
 
         <Grid Grid.Row="1">
             <wfi:WindowsFormsHost  TabIndex="10">
@@ -53,7 +80,7 @@
             <TextBox IsReadOnly="True" Name="txtLog" HorizontalAlignment="Stretch"  Margin="5,0,5,5" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch"  Grid.Column="3" Grid.Row="1"/>
             <Label Content="命令：" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Height="26" Width="46" Grid.Column="3"/>
         </Grid>
-        <Label Content="version" Name="lblVersion" HorizontalAlignment="Right" Margin="0,26,60,0" VerticalAlignment="Top" RenderTransformOrigin="2.177,-0.54"/>
+
 
     </Grid>
 </Window>

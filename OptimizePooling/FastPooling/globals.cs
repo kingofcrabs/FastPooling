@@ -113,6 +113,9 @@ namespace FastPooling
                 return startGridID;
             }
         }
+
+        public int ThisBatchGridCnt { get; internal set; }
+
         internal void ClearBarcodes()
         {
             pos_BarcodeDict.Clear();

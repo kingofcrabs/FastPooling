@@ -37,7 +37,27 @@ namespace FastPooling
             lblVersion.Content = "版本号：" + strings.version;
             CreateNamedPipeServer();
         }
-      
+        private void btnSetGrid_Click(object sender, RoutedEventArgs e)
+        {
+            string sGridCnt = txtGridCnt.Text;
+            if (sGridCnt == "")
+            {
+                AddErrorInfo("Grid数不得为空！");
+                return;
+            }
+            int gridCnt = 0;
+            bool bOk = int.TryParse(sGridCnt, out gridCnt);
+            if (gridCnt < 1 || gridCnt > 12)
+            {
+                AddErrorInfo("Grid数必须在1~12之间！");
+                return;
+            }
+            btnSetGrid.IsEnabled = false;
+            string sGridCntPath = Folders.GetOutputFolder() + "GridCnt.txt";
+            File.WriteAllText(sGridCntPath, sGridCnt);
+            GlobalVars.Instance.ThisBatchGridCnt = gridCnt;
+        }
+
         private void btnSetSampleCnt_Click(object sender, RoutedEventArgs e)
         {
             //string sGridCnt = txtGridCnt.Text;
@@ -82,6 +102,10 @@ namespace FastPooling
             int nWells = worklist.SetConfig(poolingSmpCnt,normalSmpCnt);
             txtDstWellCnt.Text = nWells.ToString();
             txtPlateNeeded.Text = nWells > 48 ? "2" : "1";
+            worklist wklist = new worklist();
+            List<string> rCommands = wklist.GenerateRCommand();
+            File.WriteAllLines(Folders.GetOutputFolder() + "reagent.gwl", rCommands);
+
             Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
             InitDataGridView(12);
@@ -211,29 +235,12 @@ namespace FastPooling
                 GlobalVars.Instance.BatchID++;
                 InitDataGridView(12);
                 //EnableControls(true);
+                btnSetGrid.IsEnabled = true;
                 return;
             }
             bool bok = true;
             Helper.WriteRetry(false);
-            if (sCommand.Contains("Gen"))
-            {
-
-                txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
-                worklist worklist = new worklist();
-                List<string> barcodesTrace = new List<string>();
-                List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref barcodesTrace);
-                List<string> rCommands = worklist.GenerateRCommand();
-                GlobalVars.Instance.ResetPosBarcode();
-                File.WriteAllLines(Folders.GetOutputFolder() + "reagent.gwl", rCommands);
-                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklist);
-                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
-
-                Helper.WriteResult(bok);
-                if (bok)
-                    Helper.CloseWaiter(strings.waiterName);
-                return;
-            }
-
+          
             int grid = 0;
             List<string> barcodes = new List<string>();
             ReadBarcode(ref grid, barcodes);
@@ -241,8 +248,27 @@ namespace FastPooling
             UpdateDataGridView(grid, barcodes);
             CheckBarcodes(grid, barcodes);
             AddInfo(string.Format("Grid{0}条码检查通过", grid));
+            if (NeedGenerateWorklist(grid))
+            {
+                txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
+                worklist wklist = new worklist();
+                List<string> barcodesTrace = new List<string>();
+                List<string> wklistStrs = wklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref barcodesTrace);
+                
+                GlobalVars.Instance.ResetPosBarcode();
+                File.WriteAllText(Folders.GetOutputFolder() + "finished.txt", wklist.Finished.ToString());
+                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklistStrs);
+                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+            }
+            Helper.WriteResult(bok);
+            if (bok)
+                Helper.CloseWaiter(strings.waiterName);
         }
 
+        private bool NeedGenerateWorklist(int curGrid)
+        {
+            return curGrid == GlobalVars.Instance.StartGridID + int.Parse(txtGridCnt.Text) - 1;
+        }
         private void UpdateDateGridView()
         {
             dataGridView.AllowUserToAddRows = false;
@@ -310,10 +336,10 @@ namespace FastPooling
             Helper.WriteRetry(true);
         }
 
-        
+       
     }
 
-    
+
     public static class ExtensionMethods
     {
 

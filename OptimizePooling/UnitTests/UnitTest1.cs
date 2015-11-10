@@ -29,6 +29,12 @@ namespace UnitTests
             TestPoolingSample(300);
         }
 
+        [TestMethod]
+        public void Pooling51Normal16()
+        {
+            TestGeneric(51, 16);
+        }
+
 
         [TestMethod]
         public void Normal16()
@@ -49,9 +55,28 @@ namespace UnitTests
             string sGwl = GetTestResultFolder() + string.Format("result{0}{1}.gwl", totalCnt, poolingOrNormal);
             string sBarcodeTrace = GetTestResultFolder() + string.Format("barcodeTrace{0}{1}.txt", totalCnt, poolingOrNormal);
             string sRCommandGwl = GetTestResultFolder() + string.Format("reagent{0}{1}.gwl", totalCnt, poolingOrNormal);
-            File.WriteAllLines(sRCommandGwl, worklist.GenerateRCommand());
-            File.WriteAllLines(sGwl, strs);
-            File.WriteAllLines(sBarcodeTrace, barcodeTrace);
+            var rCommands = worklist.GenerateRCommand();
+            var expectedRCommands = File.ReadAllLines(sRCommandGwl);
+            var expectedGwl = File.ReadAllLines(sGwl);
+            var expectedBarcodeTrace = File.ReadAllLines(sBarcodeTrace);
+            //File.WriteAllLines(sRCommandGwl, worklist.GenerateRCommand());
+            //File.WriteAllLines(sGwl, strs);
+            //File.WriteAllLines(sBarcodeTrace, barcodeTrace);
+            CheckEqual(rCommands.ToArray(), expectedRCommands);
+            CheckEqual(expectedGwl, strs.ToArray());
+            CheckEqual(expectedBarcodeTrace, barcodeTrace.ToArray());
+           
+        }
+
+        private void CheckEqual(string[] strs, string[] expectedStrs)
+        {
+
+            Assert.AreEqual(strs.Length, expectedStrs.Length);
+            for(int i = 0; i< strs.Length; i++)
+            {
+                Assert.AreEqual(strs[i], expectedStrs[i]);
+            }
+
         }
 
         private void TestPoolingSample(int cnt)
