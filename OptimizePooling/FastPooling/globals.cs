@@ -14,6 +14,7 @@ namespace FastPooling
         public Dictionary<Position, string> pos_BarcodeDict;
 
         #region configures
+        private string ditiType = GetSetting("ditiType");
         private double volume = double.Parse(GetSetting("volumeUL"));
         private string dstLabware = GetSetting("dstLabware");
         private string dstLabware2 = GetSetting("dstLabware2");
@@ -33,7 +34,13 @@ namespace FastPooling
                 return instance;
             }
         }
-
+        public string DitiType
+        {
+            get
+            {
+                return ditiType;
+            }
+        }
         public string NegtiveLabware
         {
             get

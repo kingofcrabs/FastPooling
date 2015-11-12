@@ -53,9 +53,10 @@ namespace FastPooling
                 return;
             }
             btnSetGrid.IsEnabled = false;
-            string sGridCntPath = Folders.GetOutputFolder() + "GridCnt.txt";
+            string sGridCntPath = Folders.GetOutputFolder() + "gridsCount.txt";
             File.WriteAllText(sGridCntPath, sGridCnt);
             GlobalVars.Instance.ThisBatchGridCnt = gridCnt;
+            Helper.CloseWaiter(strings.waiterName);
         }
 
         private void btnSetSampleCnt_Click(object sender, RoutedEventArgs e)
@@ -108,6 +109,7 @@ namespace FastPooling
 
             Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
+            btnSetGrid.IsEnabled = true;
             InitDataGridView(12);
         }
 
@@ -218,13 +220,13 @@ namespace FastPooling
             }
             catch (Exception ex)
             {
-                AddErrorInfo(ex.Message);
+                AddErrorInfo(ex.Message + ex.StackTrace);
             }
         }
 
         private void ExecuteCommandImpl(string sCommand)
         {
-            if (sCommand.Contains("shutdown"))
+            if (sCommand.Contains("Shutdown"))
             {
                 this.Close();
                 return;
@@ -253,13 +255,20 @@ namespace FastPooling
                 txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
                 worklist wklist = new worklist();
                 List<string> barcodesTrace = new List<string>();
-                List<string> wklistStrs = wklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref barcodesTrace);
-                
+                string warningMsg = "";
+                List<string> wklistStrs = wklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref barcodesTrace, ref warningMsg);
+                AddColorText(warningMsg, Brushes.Orange);
                 GlobalVars.Instance.ResetPosBarcode();
                 File.WriteAllText(Folders.GetOutputFolder() + "finished.txt", wklist.Finished.ToString());
                 File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklistStrs);
-                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+                string curDateTime = DateTime.Now.ToString("yyMMddHHmmss");
+                File.WriteAllLines(Folders.GetOutputFolder() + string.Format("{0}_{1}tracking.csv", curDateTime,GlobalVars.Instance.BatchID),barcodesTrace);
+                if(wklist.Finished)
+                {
+                    AddColorText("全部完成！", Brushes.Green);
+                }
             }
+            
             Helper.WriteResult(bok);
             if (bok)
                 Helper.CloseWaiter(strings.waiterName);

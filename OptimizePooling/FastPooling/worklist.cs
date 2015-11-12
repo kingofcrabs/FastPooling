@@ -13,7 +13,7 @@ namespace OptimizePooling
     class worklist
     {
         public static int curDstWellStartIndex = 0;
-        public static int curBatchID = 1;
+    
         public static int totalPoolingSmpCnt = 0;
         public static int totalNormalSmpCnt = 0;
         public static int finishedSmpCnt = 0;
@@ -23,7 +23,7 @@ namespace OptimizePooling
         {
             get
             {
-                return finishedSmpCnt == totalNormalSmpCnt + totalPoolingSmpCnt + 2;
+                return finishedSmpCnt >= totalNormalSmpCnt + totalPoolingSmpCnt;
             }
         }
 
@@ -57,11 +57,11 @@ namespace OptimizePooling
             return strs;
         }
 
-        public List<string> Generate(int sampleCount, ref List<string> barcodesTrace)
+        public List<string> Generate(int sampleCount, ref List<string> barcodesTrace, ref string warningMsg)
         {
             if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
             {
-                throw new Exception(string.Format("样品总数达到{0},超过设定值{1}",finishedSmpCnt + sampleCount,totalPoolingSmpCnt + totalNormalSmpCnt));
+                warningMsg = string.Format("样品总数达到{0},超过设定值{1}",finishedSmpCnt + sampleCount,totalPoolingSmpCnt + totalNormalSmpCnt);
             }
 
             int poolingSampleCnt = sampleCount;
@@ -71,6 +71,8 @@ namespace OptimizePooling
                 poolingSampleCnt = totalPoolingSmpCnt - finishedSmpCnt;
                 normalSampleCnt = finishedSmpCnt + sampleCount - totalPoolingSmpCnt;
             }
+
+            normalSampleCnt = Math.Min(normalSampleCnt, totalNormalSmpCnt);
 
             if( finishedSmpCnt >= totalPoolingSmpCnt)
             {
@@ -98,8 +100,6 @@ namespace OptimizePooling
 
             strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
             barcodesTrace.AddRange(negBarcodeTrace);
-            
-            curBatchID++;
             return strs;
         }
 
@@ -107,6 +107,7 @@ namespace OptimizePooling
         private List<string> GenerateNegtive(ref List<string> negTrace)
         {
             List<PipettingInfo> negPipettings = new List<PipettingInfo>();
+            
             for( int i =0; i< 2; i++)
             {
                 string sGrid = "neg";
@@ -192,14 +193,27 @@ namespace OptimizePooling
             int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
             int dstWellCntNeeded = CalculateNeededDstWell(remainingCnt);
             int additionalWellCnt = dstWellCntNeeded * GlobalVars.Instance.PoolingCnt - remainingCnt;
-            for (int wellIndex = 0; wellIndex < remainingCnt; wellIndex++ )
+            for (int wellIndex = 0; wellIndex < remainingCnt + additionalWellCnt; wellIndex++ )
             {
                 int srcGridID = startGridID + wellIndex / 16;
                 int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
                 int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
                 string sGrid = string.Format("grid{0}", srcGridID);
+                string barcode = "";
+
+                if (wellIndex >= remainingCnt)
+                {
+                    sGrid = GlobalVars.Instance.NegtiveLabware;
+                    wellIndexInGrid = wellIndex - remainingCnt;
+                    wellIndexInGrid = wellIndexInGrid % 4;
+                    barcode = string.Format("{0}_{1}", GlobalVars.Instance.NegtiveLabware, wellIndexInGrid + 1);
+                }
+                else
+                {
+                    barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                }
+                    
                 int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
-                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
                 double volume = Math.Round(GlobalVars.Instance.PipettingVolume/2,1);
                 fragmentsPipettingInfo.Add(new PipettingInfo(
                     sGrid,
@@ -280,17 +294,48 @@ namespace OptimizePooling
             List<string> strs = new List<string>();
             //pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
             List<PipettingInfo> tempPipettingInfos = new List<PipettingInfo>(pipettingInfos);
-            while(tempPipettingInfos.Count > 0)
+            double maxVolPerTip = int.Parse(GlobalVars.Instance.DitiType) * 0.9;
+            while (tempPipettingInfos.Count > 0)
             {
                 var first = tempPipettingInfos.First();
                 var sameSrcWellPipettings = tempPipettingInfos.Where(x => x.srcLabware == first.srcLabware && x.srcWellID == first.srcWellID).ToList();
-                strs.Add(GetAspirate(first.srcLabware, first.srcWellID, first.volume * sameSrcWellPipettings.Count));
-                foreach (var pipetting in sameSrcWellPipettings)
+                double totalVol = sameSrcWellPipettings.Sum(x => x.volume);
+                if(totalVol < maxVolPerTip)
                 {
-                    strs.Add(GetDispense(pipetting.dstLabware, pipetting.dstWellID, pipetting.volume));
-                    tempPipettingInfos.Remove(pipetting);
+                    strs.Add(GetAspirate(first.srcLabware, first.srcWellID, first.volume * sameSrcWellPipettings.Count));
+                    foreach (var pipetting in sameSrcWellPipettings)
+                    {
+                        strs.Add(GetDispense(pipetting.dstLabware, pipetting.dstWellID, pipetting.volume));
+                        tempPipettingInfos.Remove(pipetting);
+                    }
+                    strs.Add("W;");
                 }
-                strs.Add("W;");
+                else
+                {
+                    foreach(var pipetting in sameSrcWellPipettings)
+                    {
+                        strs.AddRange(Format(pipetting, maxVolPerTip));
+                        tempPipettingInfos.Remove(pipetting);
+                    }
+                    strs.Add("W;");
+                }
+               
+
+            }
+            return strs;
+        }
+
+
+        private List<string> Format(PipettingInfo pipettingInfo,double maxVolPerTip)
+        {
+            double vol = pipettingInfo.volume;
+            List<string> strs = new List<string>();
+            while(vol > 0)
+            {
+                double volThisTime = vol > maxVolPerTip ? maxVolPerTip : vol;
+                vol -= volThisTime;
+                strs.Add(GetAspirate(pipettingInfo.srcLabware, pipettingInfo.srcWellID, volThisTime));
+                strs.Add(GetDispense(pipettingInfo.dstLabware, pipettingInfo.dstWellID, volThisTime));
             }
             return strs;
         }
