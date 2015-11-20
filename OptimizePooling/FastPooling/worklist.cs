@@ -187,16 +187,48 @@ namespace OptimizePooling
                 startGridID += 3;
             }
             List<string> strs = Format(batchPipettingInfos);
-           
-            //process remaining
+
+            //process remaining without addtional neg
+            #region noneedAdditional
             List<PipettingInfo> fragmentsPipettingInfo = new List<PipettingInfo>();
             int remainingCnt = sampleCount - batchCnt * sampleCntPerBatch;
-            int dstWellCntNeeded = CalculateNeededDstWell(remainingCnt);
-            int additionalWellCnt = dstWellCntNeeded * GlobalVars.Instance.PoolingCnt - remainingCnt;
-            for (int wellIndex = 0; wellIndex < remainingCnt + additionalWellCnt; wellIndex++ )
+            int dstWellCntNeeded = remainingCnt / GlobalVars.Instance.PoolingCnt;
+            int noNeedAdditionalCnt = dstWellCntNeeded * GlobalVars.Instance.PoolingCnt;
+            for (int wellIndex = 0; wellIndex < noNeedAdditionalCnt; wellIndex++)
             {
                 int srcGridID = startGridID + wellIndex / 16;
                 int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
+                int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
+                string sGrid = string.Format("grid{0}", srcGridID);
+                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
+                double volume = Math.Round(GlobalVars.Instance.PipettingVolume / 2, 1);
+                fragmentsPipettingInfo.Add(new PipettingInfo(
+                    sGrid,
+                    wellIndexInGrid + 1,
+                    volume,
+                    GlobalVars.Instance.DstLabware,
+                    MapDstWellID(dstWellID),
+                    barcode));
+                fragmentsPipettingInfo.Add(new PipettingInfo(
+                   sGrid,
+                   wellIndexInGrid + 1,
+                   volume,
+                   GetSecondSliceDstLabware(),
+                   MapDstWellID(dstWellID, false),
+                   barcode));
+            }
+            curDstWellStartIndex += dstWellCntNeeded;
+            #endregion
+            //process remaining
+            remainingCnt -= dstWellCntNeeded * GlobalVars.Instance.PoolingCnt;
+            dstWellCntNeeded = CalculateNeededDstWell(remainingCnt);
+            int additionalWellCnt = dstWellCntNeeded * GlobalVars.Instance.PoolingCnt - remainingCnt;
+            for (int wellIndex = 0; wellIndex < remainingCnt + additionalWellCnt; wellIndex++ )
+            {
+                int wellIndexInBatch = wellIndex + noNeedAdditionalCnt;
+                int srcGridID = startGridID + wellIndexInBatch / 16;
+                int wellIndexInGrid = wellIndexInBatch - (wellIndexInBatch / 16) * 16;
                 int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
                 string sGrid = string.Format("grid{0}", srcGridID);
                 string barcode = "";
@@ -294,13 +326,13 @@ namespace OptimizePooling
             List<string> strs = new List<string>();
             //pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
             List<PipettingInfo> tempPipettingInfos = new List<PipettingInfo>(pipettingInfos);
-            double maxVolPerTip = int.Parse(GlobalVars.Instance.DitiType) * 0.9;
+            double maxVolPerTip = int.Parse(GlobalVars.Instance.DitiType) * 0.96;
             while (tempPipettingInfos.Count > 0)
             {
                 var first = tempPipettingInfos.First();
                 var sameSrcWellPipettings = tempPipettingInfos.Where(x => x.srcLabware == first.srcLabware && x.srcWellID == first.srcWellID).ToList();
                 double totalVol = sameSrcWellPipettings.Sum(x => x.volume);
-                if(totalVol < maxVolPerTip)
+                if(totalVol <= maxVolPerTip)
                 {
                     strs.Add(GetAspirate(first.srcLabware, first.srcWellID, first.volume * sameSrcWellPipettings.Count));
                     foreach (var pipetting in sameSrcWellPipettings)

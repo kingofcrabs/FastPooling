@@ -1,4 +1,4 @@
-﻿<Window x:Class="FastPooling.MainWindow"
+﻿<Window x:Class="FastPooling.FastPoolingMainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:FastPooling"
@@ -23,7 +23,6 @@
             </Grid.ColumnDefinitions>
             <GroupBox Header="总体设置">
                 <Grid>
-                    <Button Content="确认" Name="btnSetSampleCnt" HorizontalAlignment="Left" Margin="340,0,0,0" VerticalAlignment="Top" Width="83" Click="btnSetSampleCnt_Click"/>
                     <Label Content="Pooling样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="txtPoolingSampleCnt" Text="0" HorizontalAlignment="Left" Height="24" Margin="105,0,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60"/>
                     <Label Content="常规样品数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="179,0,0,0" VerticalAlignment="Top"/>

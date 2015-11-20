@@ -16,9 +16,9 @@ namespace FastPooling
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class FastPoolingMainWindow : Window
     {
-        public MainWindow()
+        public FastPoolingMainWindow()
         {
             InitializeComponent();
             txtRound.DataContext = GlobalVars.Instance;
@@ -39,29 +39,7 @@ namespace FastPooling
         }
         private void btnSetGrid_Click(object sender, RoutedEventArgs e)
         {
-            string sGridCnt = txtGridCnt.Text;
-            if (sGridCnt == "")
-            {
-                AddErrorInfo("Grid数不得为空！");
-                return;
-            }
-            int gridCnt = 0;
-            bool bOk = int.TryParse(sGridCnt, out gridCnt);
-            if (gridCnt < 1 || gridCnt > 12)
-            {
-                AddErrorInfo("Grid数必须在1~12之间！");
-                return;
-            }
-            btnSetGrid.IsEnabled = false;
-            string sGridCntPath = Folders.GetOutputFolder() + "gridsCount.txt";
-            File.WriteAllText(sGridCntPath, sGridCnt);
-            GlobalVars.Instance.ThisBatchGridCnt = gridCnt;
-            Helper.CloseWaiter(strings.waiterName);
-        }
 
-        private void btnSetSampleCnt_Click(object sender, RoutedEventArgs e)
-        {
-            //string sGridCnt = txtGridCnt.Text;
             string sPoolingSampleCnt = txtPoolingSampleCnt.Text;
             if (sPoolingSampleCnt == "")
             {
@@ -70,7 +48,7 @@ namespace FastPooling
             }
             int poolingSmpCnt = 0;
             bool bOk = int.TryParse(sPoolingSampleCnt, out poolingSmpCnt);
-            if (poolingSmpCnt < 0 || poolingSmpCnt > 96*6)
+            if (poolingSmpCnt < 0 || poolingSmpCnt > 96 * 6)
             {
                 AddErrorInfo("Pooling样本数必须在0~576之间！");
                 return;
@@ -88,19 +66,19 @@ namespace FastPooling
                 }
             }
 
-            if(poolingSmpCnt == 0 && normalSmpCnt == 0)
+            if (poolingSmpCnt == 0 && normalSmpCnt == 0)
             {
                 AddErrorInfo("普通样本数与pooling样本数不能同时为0！");
                 return;
             }
 
             int neededDstWell = worklist.CalculateNeededDstWell(poolingSmpCnt);
-            if(normalSmpCnt + neededDstWell >= 96)
+            if (normalSmpCnt + neededDstWell >= 96)
             {
                 AddErrorInfo(string.Format("目标孔数：{0}超过96！", neededDstWell));
                 return;
             }
-            int nWells = worklist.SetConfig(poolingSmpCnt,normalSmpCnt);
+            int nWells = worklist.SetConfig(poolingSmpCnt, normalSmpCnt);
             txtDstWellCnt.Text = nWells.ToString();
             txtPlateNeeded.Text = nWells > 48 ? "2" : "1";
             worklist wklist = new worklist();
@@ -109,8 +87,33 @@ namespace FastPooling
 
             Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
-            btnSetGrid.IsEnabled = true;
-            InitDataGridView(12);
+     
+
+            string sGridCnt = txtGridCnt.Text;
+            if (sGridCnt == "")
+            {
+                AddErrorInfo("Grid数不得为空！");
+                return;
+            }
+            int gridCnt = 0;
+            bOk = int.TryParse(sGridCnt, out gridCnt);
+            if (gridCnt < 1 || gridCnt > 12)
+            {
+                AddErrorInfo("Grid数必须在1~12之间！");
+                return;
+            }
+            btnSetGrid.IsEnabled = false;
+            string sGridCntPath = Folders.GetOutputFolder() + "gridsCount.txt";
+            File.WriteAllText(sGridCntPath, sGridCnt);
+            GlobalVars.Instance.ThisBatchGridCnt = gridCnt;
+            InitDataGridView(gridCnt);
+            Helper.CloseWaiter(strings.waiterName);
+        }
+
+        private void onSetSampleCnt()
+        {
+            //string sGridCnt = txtGridCnt.Text;
+          
         }
 
         private void InitDataGridView(int gridCnt)
@@ -190,7 +193,6 @@ namespace FastPooling
         {
             txtNormalSampleCnt.IsEnabled = bEnable;
             txtPoolingSampleCnt.IsEnabled = bEnable;
-            btnSetSampleCnt.IsEnabled = bEnable;
         }
 
         #region namedpipe
@@ -221,6 +223,7 @@ namespace FastPooling
             catch (Exception ex)
             {
                 AddErrorInfo(ex.Message + ex.StackTrace);
+                Helper.WriteResult(false);
             }
         }
 
@@ -235,17 +238,22 @@ namespace FastPooling
             if (sCommand.Contains("NewBatch"))
             {
                 GlobalVars.Instance.BatchID++;
-                InitDataGridView(12);
-                //EnableControls(true);
                 btnSetGrid.IsEnabled = true;
                 return;
             }
+
             bool bok = true;
             Helper.WriteRetry(false);
           
             int grid = 0;
             List<string> barcodes = new List<string>();
             ReadBarcode(ref grid, barcodes);
+
+            if(grid > GlobalVars.Instance.StartGridID + int.Parse(txtGridCnt.Text) - 1)
+            {
+                throw new Exception("Grid值超出范围！");
+            }
+
             GlobalVars.Instance.SetBarcodes(grid, barcodes);
             UpdateDataGridView(grid, barcodes);
             CheckBarcodes(grid, barcodes);

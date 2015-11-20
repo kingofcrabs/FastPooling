@@ -10,9 +10,9 @@ namespace FastPooling
     public class Invoker
     {
         public Action<string> sDel;
-        private MainWindow owner;
+        private FastPoolingMainWindow owner;
 
-        public Invoker(MainWindow wOwner)
+        public Invoker(FastPoolingMainWindow wOwner)
         {
             owner = wOwner;
         }
@@ -30,7 +30,7 @@ namespace FastPooling
 
     public class Pipeserver
     {
-        public static MainWindow owner;
+        public static FastPoolingMainWindow owner;
         public static Invoker ownerInvoker;
         public static string pipeName;
         private static NamedPipeServerStream pipeServer;
