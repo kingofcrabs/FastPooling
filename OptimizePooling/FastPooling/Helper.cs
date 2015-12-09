@@ -34,10 +34,10 @@ namespace FastPooling
             File.WriteAllText(sFile, bRetry.ToString());
         }
 
-        internal static void WriteGridCnt(int gridCnt)
+        internal static void WriteTotalDstWellCnt(int dstNeeded)
         {
-            string sFile = Folders.GetOutputFolder() + "gridsCount.txt";
-            File.WriteAllText(sFile, gridCnt.ToString());
+            string sFile = Folders.GetOutputFolder() + "totalDstWellCnt.txt";
+            File.WriteAllText(sFile, dstNeeded.ToString());
         }
     }
 }
