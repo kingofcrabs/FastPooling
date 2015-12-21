@@ -40,10 +40,10 @@ namespace FastPooling
             File.WriteAllText(sFile, dstNeeded.ToString());
         }
 
-        internal static void WriteGridCnt(string sGridCnt)
+        internal static void WriteThisBatchGrid(int nGridCnt)
         {
             string sFile = Folders.GetOutputFolder() + "gridsCount.txt";
-            File.WriteAllText(sFile, sGridCnt);
+            File.WriteAllText(sFile, nGridCnt.ToString());
         }
     }
 }

@@ -29,6 +29,18 @@ namespace OptimizePooling
             return s.Substring(0, index) + "\\";
         }
 
+        public static string GetBackupFolder()
+        {
+            string sOutputFolder = GetExeParentFolder() + "Backup\\";
+
+            if (!Directory.Exists(sOutputFolder))
+                Directory.CreateDirectory(sOutputFolder);
+            sOutputFolder += DateTime.Now.ToString("yyyyMMdd_HHmmss") + "\\";
+            if (!Directory.Exists(sOutputFolder))
+                Directory.CreateDirectory(sOutputFolder);
+            return sOutputFolder;
+        }
+
         public static string GetOutputFolder()
         {
             string sOutputFolder = GetExeParentFolder() + "Output\\";
@@ -71,17 +83,7 @@ namespace OptimizePooling
             File.AppendAllText(filePath, timeStr + "  " + info + "\r\n");
         }
 
-        internal static string GetBackupFolder()
-        {
-            string backupFolder = GetExeParentFolder() + "backup\\";
-            if (!Directory.Exists(backupFolder))
-                Directory.CreateDirectory(backupFolder);
-            backupFolder += string.Format(DateTime.Now.ToString("yyMMddHHmmss"));
-            if (!Directory.Exists(backupFolder))
-                Directory.CreateDirectory(backupFolder);
-            return backupFolder;
-        }
-
+   
         internal static void Backup()
         {
             string sBackup = GetBackupFolder();
@@ -125,6 +127,14 @@ namespace OptimizePooling
                 //把得到的子文件夹当成新的源文件夹，从头开始新一轮的拷贝
                 CopyFolder(strZiPath, strToPath + "\\" + strFolderName);
             }
+        }
+
+        internal static void ClearOutPut()
+        {
+            string sFolder = GetOutputFolder();
+            var files = Directory.EnumerateFiles(sFolder);
+            foreach (var file in files)
+                File.Delete(file);
         }
     }
 }

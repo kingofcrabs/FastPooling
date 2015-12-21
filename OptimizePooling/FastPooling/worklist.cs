@@ -45,14 +45,11 @@ namespace OptimizePooling
             string sBufferTubeCnt = ConfigurationManager.AppSettings["bufferTubeCnt"];
             string aspParameters = string.Format("buffer;;;1;{0}", sBufferTubeCnt);
             int totalDstWellCnt = totalNormalSmpCnt + 2 + CalculateNeededDstWell(totalPoolingSmpCnt);
-
-            //if only one plate, dst well doubled.
             if (!bUseTwoPlates)
                 totalDstWellCnt *= 2;
             string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
             string rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
             strs.Add(rCommand);
-
             if (bUseTwoPlates)
             {
                 dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware2, totalDstWellCnt);
@@ -87,6 +84,7 @@ namespace OptimizePooling
             finishedSmpCnt += sampleCount;
 
             List<string> strs = new List<string>();
+            //strs.AddRange(GenerateRCommand());
             rCommands = GenerateRCommand();
             List<string> poolingBarcodeTrace = new List<string>();
             List<string> normalBarcodeTrace = new List<string>();
@@ -239,17 +237,9 @@ namespace OptimizePooling
                 string barcode = "";
 
                 if (wellIndex >= remainingCnt)
-                {
-                    sGrid = GlobalVars.Instance.NegtiveLabware;
-                    wellIndexInGrid = wellIndex - remainingCnt;
-                    wellIndexInGrid = wellIndexInGrid % 4;
-                    barcode = string.Format("{0}_{1}", GlobalVars.Instance.NegtiveLabware, wellIndexInGrid + 1);
-                }
-                else
-                {
-                    barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
-                }
-                    
+                    continue;
+
+                barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
                 int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
                 double volume = Math.Round(GlobalVars.Instance.PipettingVolume/2,1);
                 fragmentsPipettingInfo.Add(new PipettingInfo(
@@ -466,14 +456,14 @@ namespace OptimizePooling
         }
       
 
-        public static int SetConfig(int nPoolingSmpCnt, int nNormalSmpCnt)
+        public static int SetConfig(int nPoolingSmpCnt, int nNormalSmpCnt, bool forceUseTwoPlates)
         {
             totalPoolingSmpCnt = nPoolingSmpCnt;
             totalNormalSmpCnt = nNormalSmpCnt;
             finishedSmpCnt = 0;
             curDstWellStartIndex = 0;
             int neededDstWellCnt = CalculateNeededDstWell(totalPoolingSmpCnt) + totalNormalSmpCnt + 2;
-            bUseTwoPlates = neededDstWellCnt > 48;
+            bUseTwoPlates = neededDstWellCnt > 48 || forceUseTwoPlates;
             return neededDstWellCnt;
         }
     }

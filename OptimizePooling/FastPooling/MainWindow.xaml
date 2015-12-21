@@ -46,6 +46,7 @@
                     <Label Content="需要板数：" FontFamily="SimHei" HorizontalAlignment="Left" Margin="111,29,0,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="txtPlateNeeded" HorizontalAlignment="Left" Height="24" Margin="181,29,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="60" IsReadOnly="True" RenderTransformOrigin="2.617,1.833"/>
                     <Label Content="版本号：" FontFamily="SimHei" Name="lblVersion" HorizontalAlignment="Left" Margin="111,58,0,0" VerticalAlignment="Top" />
+                    <CheckBox x:Name="chkUseTwoPlates" Content="使用2块板" IsChecked="{Binding Path= UseTwoPlates}" HorizontalAlignment="Left" Margin="10,37,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </GroupBox>
 

@@ -60,10 +60,11 @@ namespace UnitTests
             int totalCnt = poolingCnt + normalCnt;
             SetBarcodes(totalCnt);
             worklist worklist = new worklist();
-            worklist.SetConfig(poolingCnt, normalCnt);
+            worklist.SetConfig(poolingCnt, normalCnt,false);
             List<string> barcodeTrace = new List<string>();
+            List<string> rCommands = new List<string>();
             string warnMsg = "";
-            var strs = worklist.Generate(totalCnt, ref barcodeTrace, ref warnMsg);
+            var strs = worklist.Generate(totalCnt,ref rCommands, ref barcodeTrace, ref warnMsg);
             string poolingOrNormal = normalCnt == 0 ? "Pooling" : "Normal";
             string sGwl = GetTestResultFolder() + string.Format("result{0}{1}.gwl", totalCnt, poolingOrNormal);
             string sBarcodeTrace = GetTestResultFolder() + string.Format("barcodeTrace{0}{1}.txt", totalCnt, poolingOrNormal);

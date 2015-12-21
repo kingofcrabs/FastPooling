@@ -35,72 +35,57 @@ namespace FastPooling
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             lblVersion.Content = "版本号：" + strings.version;
+            chkUseTwoPlates.DataContext = this;
             CreateNamedPipeServer();
         }
+       
 
+        private int ParseValue(string sValue,string description, int min, int max)
+        {
+            int val = 0;
+            if(sValue == "")
+                throw new Exception(description + "不得为空！");
+            bool bok = int.TryParse(sValue, out val);
+            if (!bok)
+                throw new Exception(description + "必须为数字！");
+            if (val < min || val > max)
+                throw new Exception(description + string.Format("必须在{0}~{1}之间", min, max));
+            return val;
+
+        }
         private void btnSetGrid_Click(object sender, RoutedEventArgs e)
         {
             //string sGridCnt = txtGridCnt.Text;
+            try
+            {
+                onSetGrid();
+            }
+            catch(Exception ex)
+            {
+                AddErrorInfo(ex.Message);
+                return;
+            }
+        }
+
+        private void onSetGrid()
+        {
             string sPoolingSampleCnt = txtPoolingSampleCnt.Text;
-            if (sPoolingSampleCnt == "")
-            {
-                AddErrorInfo("Pooling样本数不得为空！");
-                return;
-            }
-            int poolingSmpCnt = 0;
-            bool bOk = int.TryParse(sPoolingSampleCnt, out poolingSmpCnt);
-            if (poolingSmpCnt < 1 || poolingSmpCnt > 96*6)
-            {
-                AddErrorInfo("Pooling样本数必须在1~576之间！");
-                return;
-            }
-
-            int normalSmpCnt = 0;
+            int poolingSmpCnt = ParseValue(sPoolingSampleCnt, "Pooling样本数", 1, 96 * 6);
             string sNormalSampleCnt = txtNormalSampleCnt.Text;
-            if (sNormalSampleCnt != "")
-            {
-                bOk = int.TryParse(sNormalSampleCnt, out normalSmpCnt);
-                if(!bOk)
-                {
-                    AddErrorInfo("普通样本数必须为数字！");
-                    return;
-                }
-                if (normalSmpCnt < 1 || normalSmpCnt > 96)
-                {
-                    AddErrorInfo("普通样本数必须在1~96之间！");
-                    return;
-                }
-            }
-
-            int nGrid = 0;
-            string sGrid = txtGridCnt.Text;
-            if(sGrid != "")
-            {
-                bOk = int.TryParse(sGrid, out nGrid);
-                if (!bOk)
-                {
-                    AddErrorInfo("Grid数必须为数字！");
-                    return;
-                }
-                if (nGrid < 1)
-                {
-                    AddErrorInfo("Grid数大于1！");
-                    return;
-                }
-            }
-            GlobalVars.Instance.ThisBatchGridCnt = nGrid;
+            int normalSmpCnt = ParseValue(sNormalSampleCnt, "普通样本数", 1, 96);
+            string sGridCnt = txtGridCnt.Text;
+            int nGridCnt = ParseValue(sGridCnt, "Grid数", 1, (poolingSmpCnt + normalSmpCnt + 15) / 16);
             int neededDstWell = worklist.CalculateNeededDstWell(poolingSmpCnt);
-            if(normalSmpCnt + neededDstWell >= 96)
+            if (normalSmpCnt + neededDstWell >= 96)
             {
                 AddErrorInfo(string.Format("目标孔数：{0}超过96！", neededDstWell));
                 return;
             }
-            int dstNeeded = worklist.SetConfig(poolingSmpCnt,normalSmpCnt);
+            int dstNeeded = worklist.SetConfig(poolingSmpCnt, normalSmpCnt, UseTwoPlates);
+            txtPlateNeeded.Text = worklist.bUseTwoPlates ? "2" : "1";
             txtDstWellCnt.Text = dstNeeded.ToString();
-            string sPlateCnt = neededDstWell > 48-2 ? "2" : "1"; //2 is nc & pc
-            txtPlateNeeded.Text = sPlateCnt;
             Helper.WriteTotalDstWellCnt(dstNeeded);
-            Helper.WriteGridCnt(txtGridCnt.Text);
+            Helper.WriteThisBatchGrid(nGridCnt);
             Helper.CloseWaiter(strings.waiterName);
             EnableControls(false);
             InitDataGridView(12);
@@ -173,6 +158,8 @@ namespace FastPooling
             richTxtInfo.Refresh();
         }
 
+        public bool UseTwoPlates { get; set; }
+
         private void AddInfo(string info, bool success = true)
         {
             var brush =success ? Brushes.DarkGreen : Brushes.Blue;
@@ -184,6 +171,7 @@ namespace FastPooling
             txtNormalSampleCnt.IsEnabled = bEnable;
             txtPoolingSampleCnt.IsEnabled = bEnable;
             btnSetGrid.IsEnabled = bEnable;
+            chkUseTwoPlates.IsEnabled = bEnable;
         }
 
         #region namedpipe
@@ -213,53 +201,64 @@ namespace FastPooling
                 return;
             }
 
-            if(sCommand.Contains("NewBatch"))
+            if (sCommand.Contains("NewBatch"))
             {
                 GlobalVars.Instance.BatchID++;
+                Folders.ClearOutPut();
                 EnableControls(true);
                 return;
             }
+
             bool bok = true;
-            Helper.WriteRetry(false);
             try
             {
-                if(sCommand.Contains("Gen"))
-                {
-                
-                    txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
-                    worklist worklist = new worklist();
-                    List<string> barcodesTrace = new List<string>();
-                    List<string> rCommands = new List<string>();
-                    string warningMsg = "";
-                    List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count, ref rCommands,ref barcodesTrace,ref warningMsg);
-                    if (warningMsg != "")
-                        AddWarning(warningMsg);
-                    GlobalVars.Instance.ResetPosBarcode();
-                    File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
-                    File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
-                    File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
-                }
-                else
-                {
-                    int grid = 0;
-                    List<string> barcodes = new List<string>();
-                    List<bool> results = new List<bool>();
-                    ReadBarcode(ref grid, barcodes);
-                    GlobalVars.Instance.SetBarcodes(grid, barcodes);
-                    UpdateDataGridView(grid, barcodes);
-                    CheckBarcodes(grid, barcodes);
-                    AddInfo(string.Format("Grid{0}条码检查通过", grid));
-                }
+                ExecuteCommandImpl(sCommand);
             }
             catch (Exception ex)
             {
                 AddErrorInfo(ex.Message);
                 bok = false;
             }
-
             Helper.WriteResult(bok);
             if (bok)
                 Helper.CloseWaiter(strings.waiterName);
+           
+        }
+
+        private void ExecuteCommandImpl(string sCommand)
+        {
+           
+            Helper.WriteRetry(false);
+            if (sCommand.Contains("Gen"))
+            {
+                txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
+                worklist worklist = new worklist();
+                List<string> barcodesTrace = new List<string>();
+                List<string> rCommands = new List<string>();
+                string warningMsg = "";
+                List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count,
+                    ref rCommands, ref barcodesTrace, ref warningMsg);
+                GlobalVars.Instance.ResetPosBarcode();
+                File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
+                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
+                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+                Folders.Backup();
+                if (warningMsg != "")
+                    AddWarning(warningMsg);
+            }
+            else
+            {
+
+                int grid = 0;
+                List<string> barcodes = new List<string>();
+                List<bool> results = new List<bool>();
+                ReadBarcode(ref grid, barcodes);
+                GlobalVars.Instance.SetBarcodes(grid, barcodes);
+                UpdateDataGridView(grid, barcodes);
+                CheckBarcodes(grid, barcodes);
+                AddInfo(string.Format("Grid{0}条码检查通过", grid));
+              
+            }
         }
 
         private void UpdateDateGridView()
@@ -277,14 +276,22 @@ namespace FastPooling
 
         private void CheckBarcodes(int grid, List<string> barcodes)
         {
-            bool barcodeMissing = barcodes.Contains("***");//barcode missing
-            bool notLastGrid = grid - GlobalVars.Instance.StartGridID + 1 != GlobalVars.Instance.ThisBatchGridCnt;
-            bool hasDollar = barcodes.Contains("$$$");
-            bool notLastGridHasDollar = notLastGrid && hasDollar;
-            if (notLastGridHasDollar || barcodeMissing)//not last one, don't allow $$$
+            if(barcodes.Contains("***"))//barcode missing
             {
-                throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
+                throw new Exception(string.Format("Grid{0}上条码缺失！", grid));
             }
+
+            //if(barcodes.Contains("$$$"))//sample missing
+            //{
+            //    if(NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
+            //    {
+            //        AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
+            //    }
+            //    else
+            //    {
+            //        throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
+            //    }
+            //}
         }
 
  
@@ -321,8 +328,7 @@ namespace FastPooling
             Helper.WriteRetry(true);
         }
 
-
-        
+     
     }
 
     public static class ExtensionMethods
