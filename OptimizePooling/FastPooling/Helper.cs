@@ -39,5 +39,11 @@ namespace FastPooling
             string sFile = Folders.GetOutputFolder() + "totalDstWellCnt.txt";
             File.WriteAllText(sFile, dstNeeded.ToString());
         }
+
+        internal static void WriteGridCnt(string sGridCnt)
+        {
+            string sFile = Folders.GetOutputFolder() + "gridsCount.txt";
+            File.WriteAllText(sFile, sGridCnt);
+        }
     }
 }

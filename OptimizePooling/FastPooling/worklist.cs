@@ -45,9 +45,14 @@ namespace OptimizePooling
             string sBufferTubeCnt = ConfigurationManager.AppSettings["bufferTubeCnt"];
             string aspParameters = string.Format("buffer;;;1;{0}", sBufferTubeCnt);
             int totalDstWellCnt = totalNormalSmpCnt + 2 + CalculateNeededDstWell(totalPoolingSmpCnt);
+
+            //if only one plate, dst well doubled.
+            if (!bUseTwoPlates)
+                totalDstWellCnt *= 2;
             string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
             string rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
             strs.Add(rCommand);
+
             if (bUseTwoPlates)
             {
                 dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware2, totalDstWellCnt);
@@ -57,7 +62,7 @@ namespace OptimizePooling
             return strs;
         }
 
-        public List<string> Generate(int sampleCount, ref List<string> barcodesTrace, ref string warningMsg)
+        public List<string> Generate(int sampleCount,ref List<string> rCommands, ref List<string> barcodesTrace, ref string warningMsg)
         {
             if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
             {
@@ -82,7 +87,7 @@ namespace OptimizePooling
             finishedSmpCnt += sampleCount;
 
             List<string> strs = new List<string>();
-            //strs.AddRange(GenerateRCommand());
+            rCommands = GenerateRCommand();
             List<string> poolingBarcodeTrace = new List<string>();
             List<string> normalBarcodeTrace = new List<string>();
             List<string> negBarcodeTrace = new List<string>();
