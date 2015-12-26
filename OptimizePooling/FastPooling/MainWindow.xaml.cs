@@ -70,10 +70,17 @@ namespace FastPooling
         private void onSetGrid()
         {
             string sPoolingSampleCnt = txtPoolingSampleCnt.Text;
-            int poolingSmpCnt = ParseValue(sPoolingSampleCnt, "Pooling样本数", 1, 96 * 6);
+            int poolingSmpCnt = ParseValue(sPoolingSampleCnt, "Pooling样本数", 0, 96 * 6);
             string sNormalSampleCnt = txtNormalSampleCnt.Text;
-            int normalSmpCnt = ParseValue(sNormalSampleCnt, "普通样本数", 1, 96);
+            int normalSmpCnt = ParseValue(sNormalSampleCnt, "常规样本数", 0, 96);
             string sGridCnt = txtGridCnt.Text;
+
+            if(poolingSmpCnt + normalSmpCnt == 0)
+            {
+                AddErrorInfo("常规样本数与Pooling样板数之和为0！");
+                return;
+            }
+
             int nGridCnt = ParseValue(sGridCnt, "Grid数", 1, (poolingSmpCnt + normalSmpCnt + 15) / 16);
             int neededDstWell = worklist.CalculateNeededDstWell(poolingSmpCnt);
             if (normalSmpCnt + neededDstWell >= 96)
@@ -240,8 +247,9 @@ namespace FastPooling
                     ref rCommands, ref barcodesTrace, ref warningMsg);
                 GlobalVars.Instance.ResetPosBarcode();
                 File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
-                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.csv", wklist);
+                File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklist);
                 File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+                File.WriteAllText(Folders.GetOutputFolder() + "finished.txt", worklist.Finished.ToString());
                 Folders.Backup();
                 if (warningMsg != "")
                     AddWarning(warningMsg);

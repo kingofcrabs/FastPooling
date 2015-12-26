@@ -24,6 +24,12 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void PoolingSample15()
+        {
+            TestPoolingSample(15);
+        }
+
+        [TestMethod]
         public void PoolingSample50()
         {
             TestPoolingSample(50);
@@ -45,6 +51,12 @@ namespace UnitTests
         public void Pooling51Normal16()
         {
             TestGeneric(51, 16);
+        }
+
+        [TestMethod]
+        public void Normal13()
+        {
+            TestGeneric(0, 13);
         }
 
 
@@ -73,7 +85,7 @@ namespace UnitTests
             File.WriteAllLines(sRCommandGwl, worklist.GenerateRCommand());
             File.WriteAllLines(sGwl, strs);
             File.WriteAllLines(sBarcodeTrace, barcodeTrace);
-            var rCommands = worklist.GenerateRCommand();
+            rCommands = worklist.GenerateRCommand();
             var expectedRCommands = File.ReadAllLines(sRCommandGwl);
             var expectedGwl = File.ReadAllLines(sGwl);
             var expectedBarcodeTrace = File.ReadAllLines(sBarcodeTrace);

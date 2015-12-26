@@ -45,15 +45,37 @@ namespace OptimizePooling
             string sBufferTubeCnt = ConfigurationManager.AppSettings["bufferTubeCnt"];
             string aspParameters = string.Format("buffer;;;1;{0}", sBufferTubeCnt);
             int totalDstWellCnt = totalNormalSmpCnt + 2 + CalculateNeededDstWell(totalPoolingSmpCnt);
-            if (!bUseTwoPlates)
-                totalDstWellCnt *= 2;
-            string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
-            string rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
-            strs.Add(rCommand);
+            
+        
             if (bUseTwoPlates)
             {
+                string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
+                string rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
+                strs.Add(rCommand);
                 dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware2, totalDstWellCnt);
                 rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
+                strs.Add(rCommand);
+            }
+            else
+            {
+                int remainCnt = totalDstWellCnt % 8;
+                int ExcludeEndWellID = (totalDstWellCnt - remainCnt)* 2 + 8;
+                totalDstWellCnt *= 2;
+                string sExcludeWells = "";
+                if (remainCnt != 0)
+                {
+                    int excludeWellCnt = 8 - remainCnt;
+                    totalDstWellCnt += excludeWellCnt;
+                    for (int i = 0; i < excludeWellCnt; i++)
+                    {
+                        sExcludeWells += string.Format(";{0}", ExcludeEndWellID - i);
+                    }
+                }
+
+                //R; T3; ; Trough 100ml; 1; 8; MTP96 - 3; ; 96 Well Microplate; 1; 96; 100; Water;
+                //1; 6; 0; 27; 46; 51; 69; 82
+                string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
+                string rCommand = string.Format("R;{0};{1};{2};;1;5;0{3}", aspParameters, dispParameters, reagentVolume, sExcludeWells);
                 strs.Add(rCommand);
             }
             return strs;
