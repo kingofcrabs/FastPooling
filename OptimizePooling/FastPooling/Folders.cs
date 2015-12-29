@@ -135,6 +135,8 @@ namespace OptimizePooling
             var files = Directory.EnumerateFiles(sFolder);
             foreach (var file in files)
                 File.Delete(file);
+            File.Create(sFolder + "rCommands.gwl");
+            File.Create(sFolder + "pooling.gwl");
         }
     }
 }
