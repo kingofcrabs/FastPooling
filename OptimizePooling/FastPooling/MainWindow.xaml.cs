@@ -18,6 +18,7 @@ namespace FastPooling
     /// </summary>
     public partial class FastPoolingMainWindow : Window
     {
+        worklist worklist = new worklist();
         public FastPoolingMainWindow()
         {
             InitializeComponent();
@@ -81,7 +82,8 @@ namespace FastPooling
                 return;
             }
 
-            int nGridCnt = ParseValue(sGridCnt, "Grid数", 1, (poolingSmpCnt + normalSmpCnt + 15) / 16);
+            int remainSmpCnt = poolingSmpCnt + normalSmpCnt - worklist.finishedSmpCnt;
+            int nGridCnt = ParseValue(sGridCnt, "Grid数", 1, (remainSmpCnt + 15) / 16);
             int neededDstWell = worklist.CalculateNeededDstWell(poolingSmpCnt);
             if (normalSmpCnt + neededDstWell >= 96)
             {
@@ -217,18 +219,28 @@ namespace FastPooling
             }
 
             bool bok = true;
+#if DEBUG
+#else
             try
+#endif
             {
                 ExecuteCommandImpl(sCommand);
             }
+#if DEBUG
+#else
             catch (Exception ex)
             {
-                AddErrorInfo(ex.Message);
+                AddErrorInfo(ex.Message+ex.StackTrace);
                 bok = false;
             }
+#endif
             Helper.WriteResult(bok);
             if (bok)
+            {
+                Thread.Sleep(1000);
                 Helper.CloseWaiter(strings.waiterName);
+            }
+                
            
         }
 
@@ -239,7 +251,7 @@ namespace FastPooling
             if (sCommand.Contains("Gen"))
             {
                 txtLog.AppendText(string.Format("Generate worklist, total sample count is:{0}!", GlobalVars.Instance.pos_BarcodeDict.Count));
-                worklist worklist = new worklist();
+                
                 List<string> barcodesTrace = new List<string>();
                 List<string> rCommands = new List<string>();
                 string warningMsg = "";
@@ -277,10 +289,10 @@ namespace FastPooling
             List<string> strs = new List<string>();
         }
 
-        //private bool NeedGenerateWorklist(int curGrid)
-        //{
-        //    return curGrid == GlobalVars.Instance.StartGridID + int.Parse(txtGridCnt.Text) -1;
-        //}
+        private bool NeedGenerateWorklist(int curGrid)
+        {
+            return curGrid == GlobalVars.Instance.StartGridID + int.Parse(txtGridCnt.Text) - 1;
+        }
 
         private void CheckBarcodes(int grid, List<string> barcodes)
         {
@@ -289,17 +301,17 @@ namespace FastPooling
                 throw new Exception(string.Format("Grid{0}上条码缺失！", grid));
             }
 
-            //if(barcodes.Contains("$$$"))//sample missing
-            //{
-            //    if(NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
-            //    {
-            //        AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
-            //    }
-            //    else
-            //    {
-            //        throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
-            //    }
-            //}
+            if (barcodes.Contains("$$$"))//sample missing
+            {
+                if (NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
+                {
+                    AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
+                }
+                else
+                {
+                    throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
+                }
+            }
         }
 
  
@@ -327,7 +339,7 @@ namespace FastPooling
             string[] strs = s.Split(';');
             return strs.Last();
         }
-        #endregion
+#endregion
 
         private void btnRetry_Click(object sender, RoutedEventArgs e)
         {

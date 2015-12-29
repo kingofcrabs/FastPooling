@@ -122,9 +122,12 @@ namespace OptimizePooling
                 strs.AddRange(GenerateNormal(poolingSampleCnt,normalSampleCnt,ref normalBarcodeTrace));
                 barcodesTrace.AddRange(normalBarcodeTrace);
             }
-
-            strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
-            barcodesTrace.AddRange(negBarcodeTrace);
+            if(Finished)
+            {
+                strs.Add("B;Comment(\"Pippeting neg.\");");
+                strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
+                barcodesTrace.AddRange(negBarcodeTrace);
+            }
             return strs;
         }
 
@@ -205,14 +208,18 @@ namespace OptimizePooling
             int batchCnt = sampleCount / sampleCntPerBatch;
             List<PipettingInfo> batchPipettingInfos = new List<PipettingInfo>();
             int startGridID = GlobalVars.Instance.StartGridID;// 
+            List<string> strs = new List<string>();
             for (int i = 0; i < batchCnt; i++)
             {
-                batchPipettingInfos.AddRange(GenerateBatch(startGridID));
+                var thisGridPipettingInfos = GenerateBatch(startGridID);
+                strs.AddRange(Format(thisGridPipettingInfos));
+                strs.Add(string.Format("B;Comment(\"Pippeting Batch: {0}\");", i + 1));
+                batchPipettingInfos.AddRange(thisGridPipettingInfos);
                 curDstWellStartIndex += 8;
                 startGridID += 3;
             }
-            List<string> strs = Format(batchPipettingInfos);
 
+            strs.Add("B;Comment(\"Pippeting Remaining\");");
             //process remaining without addtional neg
             #region noneedAdditional
             List<PipettingInfo> fragmentsPipettingInfo = new List<PipettingInfo>();
@@ -338,7 +345,7 @@ namespace OptimizePooling
             return s;
         }
 
-        private List<string> Format(List<PipettingInfo> pipettingInfos)
+        private List<string> Format(IEnumerable<PipettingInfo> pipettingInfos)
         {
             List<string> strs = new List<string>();
             //pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
