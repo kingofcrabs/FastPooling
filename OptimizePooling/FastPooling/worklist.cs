@@ -18,7 +18,7 @@ namespace OptimizePooling
         public static int totalNormalSmpCnt = 0;
         public static int finishedSmpCnt = 0;
         public static bool bUseTwoPlates = false;
-
+        
         public bool Finished
         {
             get
@@ -176,8 +176,12 @@ namespace OptimizePooling
                 
                 string sGrid = string.Format("grid{0}", srcGridID);
                 int dstWellID = curDstWellStartIndex + i + 1;
-                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
-                double volume = Math.Round(GlobalVars.Instance.PipettingVolume / 2, 1);
+                Position pos = new Position(srcGridID - 1, wellIndexInGrid);
+                if (!GlobalVars.Instance.pos_BarcodeDict.ContainsKey(pos))
+                    throw new Exception(string.Format("Cannot find barcode for grid:{0}, pos:{1}", pos.x, pos.y));
+
+                string barcode = GlobalVars.Instance.pos_BarcodeDict[pos];
+                double volume = 480;//Math.Round(GlobalVars.Instance.PipettingVolume / 2, 1);
                 normalPipettings.Add(new PipettingInfo(
                     sGrid,
                     wellIndexInGrid + 1,
@@ -232,7 +236,11 @@ namespace OptimizePooling
                 int wellIndexInGrid = wellIndex - (wellIndex / 16) * 16;
                 int dstWellIndex = wellIndex - wellIndex / dstWellCntNeeded * dstWellCntNeeded;
                 string sGrid = string.Format("grid{0}", srcGridID);
-                string barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                Position pos = new Position(srcGridID - 1, wellIndexInGrid);
+                if (!GlobalVars.Instance.pos_BarcodeDict.ContainsKey(pos))
+                    throw new Exception(string.Format("Cannot find barcode for grid:{0}, pos:{1}", pos.x, pos.y));
+
+                string barcode = GlobalVars.Instance.pos_BarcodeDict[pos];
                 int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
                 double volume = Math.Round(GlobalVars.Instance.PipettingVolume / 2, 1);
                 fragmentsPipettingInfo.Add(new PipettingInfo(
@@ -267,8 +275,11 @@ namespace OptimizePooling
 
                 if (wellIndex >= remainingCnt)
                     continue;
+                var pos = new Position(srcGridID - 1, wellIndexInGrid);
+                if (!GlobalVars.Instance.pos_BarcodeDict.ContainsKey(pos))
+                    throw new Exception(string.Format("Cannot find barcode for grid:{0}, pos:{1}", pos.x, pos.y));
 
-                barcode = GlobalVars.Instance.pos_BarcodeDict[new Position(srcGridID - 1, wellIndexInGrid)];
+                barcode = GlobalVars.Instance.pos_BarcodeDict[pos];
                 int dstWellID = curDstWellStartIndex + dstWellIndex + 1;
                 double volume = Math.Round(GlobalVars.Instance.PipettingVolume/2,1);
                 fragmentsPipettingInfo.Add(new PipettingInfo(
@@ -490,7 +501,7 @@ namespace OptimizePooling
             totalPoolingSmpCnt = nPoolingSmpCnt;
             totalNormalSmpCnt = nNormalSmpCnt;
             
-            curDstWellStartIndex = 0;
+            //curDstWellStartIndex = 0;
             int neededDstWellCnt = CalculateNeededDstWell(totalPoolingSmpCnt) + totalNormalSmpCnt + 2;
             bUseTwoPlates = neededDstWellCnt > 48 || forceUseTwoPlates;
             return neededDstWellCnt;

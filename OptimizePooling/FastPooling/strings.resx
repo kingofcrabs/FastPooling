@@ -121,7 +121,7 @@
     <value>ReadPosIDBarcode</value>
   </data>
   <data name="version" xml:space="preserve">
-    <value>0.10</value>
+    <value>0.11</value>
   </data>
   <data name="waiterName" xml:space="preserve">
     <value>FeedMe</value>

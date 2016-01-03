@@ -260,7 +260,7 @@ namespace FastPooling
                 GlobalVars.Instance.ResetPosBarcode();
                 File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
                 File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklist);
-                File.WriteAllLines(Folders.GetOutputFolder() + "tracking.csv", barcodesTrace);
+                File.WriteAllLines(Folders.GetOutputFolder() + string.Format("tracking_Batch{0}.csv",GlobalVars.Instance.BatchID), barcodesTrace);
                 File.WriteAllText(Folders.GetOutputFolder() + "finished.txt", worklist.Finished.ToString());
                 Folders.Backup();
                 if (warningMsg != "")
@@ -273,9 +273,9 @@ namespace FastPooling
                 List<string> barcodes = new List<string>();
                 List<bool> results = new List<bool>();
                 ReadBarcode(ref grid, barcodes);
-                GlobalVars.Instance.SetBarcodes(grid, barcodes);
                 UpdateDataGridView(grid, barcodes);
                 CheckBarcodes(grid, barcodes);
+                GlobalVars.Instance.SetBarcodes(grid, barcodes);
                 AddInfo(string.Format("Grid{0}条码检查通过", grid));
               
             }
