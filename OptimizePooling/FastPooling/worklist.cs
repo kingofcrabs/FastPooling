@@ -101,7 +101,7 @@ namespace OptimizePooling
             if( finishedSmpCnt >= totalPoolingSmpCnt)
             {
                 poolingSampleCnt = 0;
-                normalSampleCnt = sampleCount;
+                normalSampleCnt = Math.Min(sampleCount, totalNormalSmpCnt);
             }
             finishedSmpCnt += sampleCount;
 
