@@ -134,7 +134,11 @@ namespace OptimizePooling
             string sFolder = GetOutputFolder();
             var files = Directory.EnumerateFiles(sFolder);
             foreach (var file in files)
+            {
+                if (file.Contains("tracking"))
+                    continue;
                 File.Delete(file);
+            }
             File.Create(sFolder + "rCommands.gwl");
             File.Create(sFolder + "pooling.gwl");
         }
