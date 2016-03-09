@@ -122,7 +122,20 @@ namespace FastPooling
         }
 
         public int ThisBatchGridCnt { get; internal set; }
-
+        public void CheckDuplicated()
+        {
+            for(int i = 0; i< pos_BarcodeDict.Count; i++)
+            {
+                var checkPair = pos_BarcodeDict.ElementAt(i);
+                for(int j = i+1; j< pos_BarcodeDict.Count; j++)
+                {
+                    var comparePair = pos_BarcodeDict.ElementAt(j);
+                    if(comparePair.Value == checkPair.Value)
+                        throw new Exception(string.Format("条{0}行{1}与条{2}行{3}上的条码重复，都是:{4}", checkPair.Key.x + 1, checkPair.Key.y + 1,
+                            comparePair.Key.x+1,comparePair.Key.y+1,comparePair.Value));
+                }
+            }
+        }
        
         internal void SetBarcodes(int gridID, List<string> barcodes)
         {

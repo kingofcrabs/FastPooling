@@ -286,6 +286,7 @@ namespace FastPooling
             }
             GlobalVars.Instance.SetBarcodes(gridID, barcodes);
             CheckBarcodes(gridID, barcodes);
+            GlobalVars.Instance.CheckDuplicated();
         }
 
 
@@ -321,7 +322,8 @@ namespace FastPooling
                 UpdateDataGridView(grid, barcodes);
                 GlobalVars.Instance.SetBarcodes(grid, barcodes);
                 CheckBarcodes(grid, barcodes);
-                AddInfo(string.Format("Grid{0}条码检查通过", grid));
+                GlobalVars.Instance.CheckDuplicated();
+                AddInfo(string.Format("条{0}条码检查通过", grid));
               
             }
         }
@@ -341,9 +343,9 @@ namespace FastPooling
 
         private void CheckBarcodes(int grid, List<string> barcodes)
         {
-            if(barcodes.Contains("***"))//barcode missing
+            if(barcodes.Contains("***") || barcodes.Contains(""))//barcode missing
             {
-                throw new Exception(string.Format("Grid{0}上条码缺失！", grid));
+                throw new Exception(string.Format("条{0}上条码缺失！", grid));
             }
 
             if (barcodes.Contains("$$$"))//sample missing
@@ -355,11 +357,11 @@ namespace FastPooling
 
                 if (NeedGenerateWorklist(grid) && firstMissingIndex >= totalSample) //if it is the last grid, and the count is not enough,ok, give warning
                 {
-                    AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
+                    AddWarning(string.Format("条{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
                 }
                 else
                 {
-                    throw new Exception(string.Format("Grid{0}上样品缺失！", grid));
+                    throw new Exception(string.Format("条{0}上样品缺失！", grid));
                 }
             }
         }

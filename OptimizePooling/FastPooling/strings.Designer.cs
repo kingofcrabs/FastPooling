@@ -70,7 +70,7 @@ namespace FastPooling {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0.14.
+        ///   Looks up a localized string similar to 0.15.
         /// </summary>
         internal static string version {
             get {
