@@ -68,7 +68,7 @@ namespace UnitTests
 
         private void TestGeneric(int poolingCnt, int normalCnt)
         {
-            GlobalVars.Instance.ClearBarcodes();
+            GlobalVars.Instance.ResetPosBarcode();
             int totalCnt = poolingCnt + normalCnt;
             SetBarcodes(totalCnt);
             worklist worklist = new worklist();

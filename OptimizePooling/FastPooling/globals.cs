@@ -123,18 +123,14 @@ namespace FastPooling
 
         public int ThisBatchGridCnt { get; internal set; }
 
-        internal void ClearBarcodes()
-        {
-            pos_BarcodeDict.Clear();
-        }
-
+       
         internal void SetBarcodes(int gridID, List<string> barcodes)
         {
             int gridIndex = gridID - 1;
             for(int i = 0; i< barcodes.Count; i++)
             {
-                if (barcodes[i] == "$$$")
-                    continue;
+                //if (barcodes[i] == "$$$")
+                //    continue;
                 Position pos = new Position(gridIndex, i);
                 if (pos_BarcodeDict.ContainsKey(pos))
                     pos_BarcodeDict[pos] = barcodes[i];

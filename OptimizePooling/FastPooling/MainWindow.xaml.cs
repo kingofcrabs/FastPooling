@@ -157,6 +157,7 @@ namespace FastPooling
             TextRange tr = new TextRange(richTxtInfo.Document.ContentEnd,richTxtInfo.Document.ContentEnd);
             tr.Text = txt + "\r";
             tr.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
+            richTxtInfo.ScrollToEnd();
         }
 
        
@@ -219,21 +220,17 @@ namespace FastPooling
             }
 
             bool bok = true;
-#if DEBUG
-#else
+
             try
-#endif
             {
                 ExecuteCommandImpl(sCommand);
             }
-#if DEBUG
-#else
             catch (Exception ex)
             {
-                AddErrorInfo(ex.Message+ex.StackTrace);
+                AddErrorInfo(ex.Message);
                 bok = false;
             }
-#endif
+
             Helper.WriteResult(bok);
             if (bok)
             {
@@ -243,6 +240,54 @@ namespace FastPooling
                 
            
         }
+        private void btnFix_Click(object sender, RoutedEventArgs e)
+        {
+            Fix();
+        }
+
+        private void Fix()
+        {
+            if (dataGridView.EditingControl is TextBox)
+            {
+                dataGridView.EditingControl.Text = dataGridView.CurrentCell.Value.ToString();
+            }
+            AddInfo("按下修复按钮", false);
+            try
+            {
+                FixImpl();
+            }
+            catch(Exception ex)
+            {
+                AddErrorInfo(ex.Message);
+                AddErrorInfo("修复失败！");
+                return;
+            }
+            AddInfo("修复成功！", false);
+            Helper.CloseWaiter(strings.waiterName);
+            Helper.WriteResult(true);
+            Helper.WriteRetry(false);
+        }
+
+        private void FixImpl()
+        {
+
+            if (GlobalVars.Instance.pos_BarcodeDict.Count == 0)
+                throw new Exception("尚未扫描条码！");
+
+            //检查当前列
+            var lastPair = GlobalVars.Instance.pos_BarcodeDict.Last();
+            int gridID = lastPair.Key.x + 1;
+            int col = gridID - GlobalVars.Instance.StartGridID;
+            List<string> barcodes = new List<string>();
+            for(int row = 0; row< 16; row++)
+            {
+                var cell = dataGridView.Rows[row].Cells[col];
+                barcodes.Add(cell.Value.ToString());
+            }
+            GlobalVars.Instance.SetBarcodes(gridID, barcodes);
+            CheckBarcodes(gridID, barcodes);
+        }
+
 
         private void ExecuteCommandImpl(string sCommand)
         {
@@ -274,8 +319,8 @@ namespace FastPooling
                 List<bool> results = new List<bool>();
                 ReadBarcode(ref grid, barcodes);
                 UpdateDataGridView(grid, barcodes);
-                CheckBarcodes(grid, barcodes);
                 GlobalVars.Instance.SetBarcodes(grid, barcodes);
+                CheckBarcodes(grid, barcodes);
                 AddInfo(string.Format("Grid{0}条码检查通过", grid));
               
             }
@@ -303,7 +348,12 @@ namespace FastPooling
 
             if (barcodes.Contains("$$$"))//sample missing
             {
-                if (NeedGenerateWorklist(grid)) //if it is the last grid, ok, give warning
+                int totalSample = worklist.totalNormalSmpCnt + worklist.totalPoolingSmpCnt;
+                while (totalSample > 16)
+                    totalSample -= 16;
+                int firstMissingIndex = barcodes.IndexOf("$$$");
+
+                if (NeedGenerateWorklist(grid) && firstMissingIndex >= totalSample) //if it is the last grid, and the count is not enough,ok, give warning
                 {
                     AddWarning(string.Format("Grid{0}只有{1}个样品！", grid, barcodes.Count(x => x != "$$$")));
                 }
@@ -340,13 +390,31 @@ namespace FastPooling
             return strs.Last();
         }
 #endregion
-
+        
         private void btnRetry_Click(object sender, RoutedEventArgs e)
         {
             AddInfo("按下重试按钮", false);
             Helper.CloseWaiter(strings.waiterName);
             Helper.WriteRetry(true);
         }
+
+        //private void dataGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        //{
+        //    if (e.ColumnIndex == -1)
+        //        return;
+        //    if (e.ColumnIndex >= GlobalVars.Instance.pos_BarcodeDict.Keys.Count)
+        //        return;
+        //    int gridIndex = GlobalVars.Instance.pos_BarcodeDict.Keys.ElementAt(e.ColumnIndex).x;
+        //    var cell = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+        //    string newVal = cell.Value.ToString();
+        //    cell.ReadOnly = true;
+        //    string hint = string.Format("Grid:{0} 第{1}个样品管的条码得到修复。"
+        //        , gridIndex + 1, e.RowIndex + 1);
+        //    GlobalVars.Instance.pos_BarcodeDict[new Position(gridIndex, e.RowIndex)] = newVal;
+        //    AddInfo(hint);
+        //}
+
+      
 
      
     }

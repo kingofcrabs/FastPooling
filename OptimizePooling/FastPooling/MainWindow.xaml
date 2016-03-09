@@ -56,7 +56,7 @@
 
         <Grid Grid.Row="1">
             <wfi:WindowsFormsHost  TabIndex="10">
-                <wf:DataGridView x:Name="dataGridView" AllowUserToAddRows="False" />
+                <wf:DataGridView x:Name="dataGridView" AllowUserToAddRows="False"/>
             </wfi:WindowsFormsHost>
         </Grid>
 
@@ -72,8 +72,12 @@
                 <ColumnDefinition Width="*"/>
 
             </Grid.ColumnDefinitions>
-            <RichTextBox Name="richTxtInfo" ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0,0,5,5" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"   Grid.Row="1" VerticalAlignment="Stretch" />
-            <Button Content="重试" Name="btnRetry" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="100" Height="30" Click="btnRetry_Click"/>
+            <RichTextBox Name="richTxtInfo"  ScrollViewer.VerticalScrollBarVisibility="Auto" Margin="0,0,5,5" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"   Grid.Row="1" VerticalAlignment="Stretch" />
+            <StackPanel Grid.Row="1" Grid.Column="2">
+                <Button Content="重试" Name="btnRetry" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="90" Height="30" Margin="5,2,5,2" Click="btnRetry_Click"/>
+                <Button Content="修复" Name="btnFix" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left"  VerticalAlignment="Top" Width="90" Height="30" Margin="5,2,5,2" Click="btnFix_Click"/>
+            </StackPanel>
+            
             <Label Content="日志：" HorizontalAlignment="Left" Margin="4,0,0,0" VerticalAlignment="Top" Height="26" Width="46" Grid.RowSpan="2"/>
 
             <TextBox IsReadOnly="True" Name="txtLog" HorizontalAlignment="Stretch"  Margin="5,0,5,5" TextWrapping="Wrap" Text="" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Auto"  Grid.Column="3" Grid.Row="1"/>
