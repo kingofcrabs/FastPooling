@@ -83,7 +83,15 @@ namespace OptimizePooling
 
         public List<string> Generate(int sampleCount,ref List<string> rCommands, ref List<string> barcodesTrace, ref string warningMsg)
         {
-            if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
+            List<string> strs = new List<string>();
+            List<string> negBarcodeTrace = new List<string>();
+            if (finishedSmpCnt == 0)
+            {
+                strs.Add("B;Comment(\"Pippeting neg.\");");
+                strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
+                barcodesTrace.AddRange(negBarcodeTrace);
+            }
+            if ( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
             {
                 warningMsg = string.Format("样品总数达到{0},超过设定值{1}",finishedSmpCnt + sampleCount,totalPoolingSmpCnt + totalNormalSmpCnt);
             }
@@ -105,12 +113,12 @@ namespace OptimizePooling
             }
             finishedSmpCnt += sampleCount;
 
-            List<string> strs = new List<string>();
+            
             //strs.AddRange(GenerateRCommand());
             rCommands = GenerateRCommand();
             List<string> poolingBarcodeTrace = new List<string>();
             List<string> normalBarcodeTrace = new List<string>();
-            List<string> negBarcodeTrace = new List<string>();
+           
             if (poolingSampleCnt > 0)
             {
                 strs.AddRange(GeneratePooling(poolingSampleCnt,ref poolingBarcodeTrace));
@@ -122,12 +130,7 @@ namespace OptimizePooling
                 strs.AddRange(GenerateNormal(poolingSampleCnt,normalSampleCnt,ref normalBarcodeTrace));
                 barcodesTrace.AddRange(normalBarcodeTrace);
             }
-            if(Finished)
-            {
-                strs.Add("B;Comment(\"Pippeting neg.\");");
-                strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
-                barcodesTrace.AddRange(negBarcodeTrace);
-            }
+            
             return strs;
         }
 
@@ -160,7 +163,7 @@ namespace OptimizePooling
 
             curDstWellStartIndex += 2;
             List<string> strs = new List<string>();
-            strs.AddRange(Format(negPipettings));
+            strs.AddRange(Format(negPipettings,true));
             negTrace = GetBarcodesSourceInfo(negPipettings);
             return strs;
         }
@@ -356,12 +359,14 @@ namespace OptimizePooling
             return s;
         }
 
-        private List<string> Format(IEnumerable<PipettingInfo> pipettingInfos)
+        private List<string> Format(IEnumerable<PipettingInfo> pipettingInfos,bool isNeg = false)
         {
             List<string> strs = new List<string>();
             //pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
             List<PipettingInfo> tempPipettingInfos = new List<PipettingInfo>(pipettingInfos);
             double maxVolPerTip = int.Parse(GlobalVars.Instance.DitiType) * 0.96;
+            if (isNeg)
+                maxVolPerTip = int.Parse(ConfigurationManager.AppSettings["negMaxVolume"]);
             while (tempPipettingInfos.Count > 0)
             {
                 var first = tempPipettingInfos.First();
