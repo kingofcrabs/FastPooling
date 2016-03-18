@@ -83,22 +83,14 @@ namespace OptimizePooling
 
         public List<string> Generate(int sampleCount,ref List<string> rCommands, ref List<string> barcodesTrace, ref string warningMsg)
         {
-            List<string> strs = new List<string>();
-            List<string> negBarcodeTrace = new List<string>();
-            if (finishedSmpCnt == 0)
+            if(finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
             {
-                strs.Add("B;Comment(\"Pippeting neg.\");");
-                strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
-                barcodesTrace.AddRange(negBarcodeTrace);
-            }
-            if ( finishedSmpCnt + sampleCount > totalPoolingSmpCnt + totalNormalSmpCnt)
-            {
-                warningMsg = string.Format("样品总数达到{0},超过设定值{1}",finishedSmpCnt + sampleCount,totalPoolingSmpCnt + totalNormalSmpCnt);
+                warningMsg = string.Format("样品总数达到{0},超过设定值{1}", finishedSmpCnt + sampleCount, totalPoolingSmpCnt + totalNormalSmpCnt);
             }
 
             int poolingSampleCnt = sampleCount;
-            int normalSampleCnt = 0; 
-            if( finishedSmpCnt + sampleCount > totalPoolingSmpCnt && finishedSmpCnt < totalPoolingSmpCnt) //has normal sample, but not all normal sample
+            int normalSampleCnt = 0;
+            if (finishedSmpCnt + sampleCount > totalPoolingSmpCnt && finishedSmpCnt < totalPoolingSmpCnt) //has normal sample, but not all normal sample
             {
                 poolingSampleCnt = totalPoolingSmpCnt - finishedSmpCnt;
                 normalSampleCnt = finishedSmpCnt + sampleCount - totalPoolingSmpCnt;
@@ -106,31 +98,37 @@ namespace OptimizePooling
 
             normalSampleCnt = Math.Min(normalSampleCnt, totalNormalSmpCnt);
 
-            if( finishedSmpCnt >= totalPoolingSmpCnt)
+            if (finishedSmpCnt >= totalPoolingSmpCnt)
             {
                 poolingSampleCnt = 0;
                 normalSampleCnt = Math.Min(sampleCount, totalNormalSmpCnt);
             }
             finishedSmpCnt += sampleCount;
 
-            
+            List<string> strs = new List<string>();
             //strs.AddRange(GenerateRCommand());
             rCommands = GenerateRCommand();
             List<string> poolingBarcodeTrace = new List<string>();
             List<string> normalBarcodeTrace = new List<string>();
-           
+            List<string> negBarcodeTrace = new List<string>();
             if (poolingSampleCnt > 0)
             {
-                strs.AddRange(GeneratePooling(poolingSampleCnt,ref poolingBarcodeTrace));
+                strs.AddRange(GeneratePooling(poolingSampleCnt, ref poolingBarcodeTrace));
                 barcodesTrace.AddRange(poolingBarcodeTrace);
             }
 
-            if( normalSampleCnt > 0)
+            if (normalSampleCnt > 0)
             {
-                strs.AddRange(GenerateNormal(poolingSampleCnt,normalSampleCnt,ref normalBarcodeTrace));
+                strs.AddRange(GenerateNormal(poolingSampleCnt, normalSampleCnt, ref normalBarcodeTrace));
                 barcodesTrace.AddRange(normalBarcodeTrace);
             }
-            
+            if (Finished)
+            {
+                strs.Add("B;Comment(\"Pippeting neg.\");");
+                strs.AddRange(GenerateNegtive(ref negBarcodeTrace));
+                barcodesTrace.AddRange(negBarcodeTrace);
+            }
+
             return strs;
         }
 
