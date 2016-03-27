@@ -43,6 +43,7 @@ namespace OptimizePooling
             List<string> strs = new List<string>();
             string reagentVolume = ConfigurationManager.AppSettings["reagentVolume"];
             string sBufferTubeCnt = ConfigurationManager.AppSettings["bufferTubeCnt"];
+            int multiDispenseTimes = int.Parse(ConfigurationManager.AppSettings["multiDspTimes"]);
             string aspParameters = string.Format("buffer;;;1;{0}", sBufferTubeCnt);
             int totalDstWellCnt = totalNormalSmpCnt + 2 + CalculateNeededDstWell(totalPoolingSmpCnt);
             
@@ -50,10 +51,10 @@ namespace OptimizePooling
             if (bUseTwoPlates)
             {
                 string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
-                string rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
+                string rCommand = string.Format("R;{0};{1};{2};;1;{3};0", aspParameters, dispParameters, reagentVolume, multiDispenseTimes);
                 strs.Add(rCommand);
                 dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware2, totalDstWellCnt);
-                rCommand = string.Format("R;{0};{1};{2};;1;5;0", aspParameters, dispParameters, reagentVolume);
+                rCommand = string.Format("R;{0};{1};{2};;1;{3};0", aspParameters, dispParameters, reagentVolume, multiDispenseTimes);
                 strs.Add(rCommand);
             }
             else
@@ -75,7 +76,7 @@ namespace OptimizePooling
                 //R; T3; ; Trough 100ml; 1; 8; MTP96 - 3; ; 96 Well Microplate; 1; 96; 100; Water;
                 //1; 6; 0; 27; 46; 51; 69; 82
                 string dispParameters = string.Format("{0};;;1;{1}", GlobalVars.Instance.DstLabware, totalDstWellCnt);
-                string rCommand = string.Format("R;{0};{1};{2};;1;5;0{3}", aspParameters, dispParameters, reagentVolume, sExcludeWells);
+                string rCommand = string.Format("R;{0};{1};{2};;1;{3};0;{4}", aspParameters, dispParameters, reagentVolume,multiDispenseTimes, sExcludeWells);
                 strs.Add(rCommand);
             }
             return strs;
@@ -161,7 +162,7 @@ namespace OptimizePooling
 
             curDstWellStartIndex += 2;
             List<string> strs = new List<string>();
-            strs.AddRange(Format(negPipettings,true));
+            strs.AddRange(Format(negPipettings));
             negTrace = GetBarcodesSourceInfo(negPipettings);
             return strs;
         }
@@ -357,14 +358,12 @@ namespace OptimizePooling
             return s;
         }
 
-        private List<string> Format(IEnumerable<PipettingInfo> pipettingInfos,bool isNeg = false)
+        private List<string> Format(IEnumerable<PipettingInfo> pipettingInfos)
         {
             List<string> strs = new List<string>();
             //pipettingInfos.ForEach(x => strs.AddRange(GenerateAspAndDisp(x)));
             List<PipettingInfo> tempPipettingInfos = new List<PipettingInfo>(pipettingInfos);
             double maxVolPerTip = int.Parse(GlobalVars.Instance.DitiType) * 0.96;
-            if (isNeg)
-                maxVolPerTip = int.Parse(ConfigurationManager.AppSettings["negMaxVolume"]);
             while (tempPipettingInfos.Count > 0)
             {
                 var first = tempPipettingInfos.First();
