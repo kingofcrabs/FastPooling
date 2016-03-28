@@ -93,6 +93,8 @@ namespace FastPooling
             int dstNeeded = worklist.SetConfig(poolingSmpCnt, normalSmpCnt, UseTwoPlates);
             txtPlateNeeded.Text = worklist.bUseTwoPlates ? "2" : "1";
             txtDstWellCnt.Text = dstNeeded.ToString();
+            var rCommands = worklist.GenerateRCommand();
+            File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
             Helper.WriteTotalDstWellCnt(dstNeeded);
             Helper.WriteThisBatchGrid(nGridCnt);
             Helper.CloseWaiter(strings.waiterName);
@@ -305,7 +307,7 @@ namespace FastPooling
                 List<string> wklist = worklist.Generate(GlobalVars.Instance.pos_BarcodeDict.Count,
                     ref rCommands, ref barcodesTrace, ref warningMsg);
                 GlobalVars.Instance.ResetPosBarcode();
-                File.WriteAllLines(Folders.GetOutputFolder() + "rCommands.gwl", rCommands);
+                
                 File.WriteAllLines(Folders.GetOutputFolder() + "pooling.gwl", wklist);
                 File.WriteAllLines(Folders.GetOutputFolder() + string.Format("tracking_Batch{0}.csv",GlobalVars.Instance.BatchID), barcodesTrace);
                 File.WriteAllText(Folders.GetOutputFolder() + "finished.txt", worklist.Finished.ToString());
