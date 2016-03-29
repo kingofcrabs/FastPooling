@@ -321,12 +321,34 @@ namespace FastPooling
                 List<string> barcodes = new List<string>();
                 List<bool> results = new List<bool>();
                 ReadBarcode(ref grid, barcodes);
+                
+                if(NeedGenerateWorklist(grid))
+                {
+                    //txtLog.AppendText(string.Format("need generate worklist, try to remove no need ones.original cnt is:{0}",barcodes.Count));
+                    RemoveExtraBarcodes(ref barcodes);
+                    //txtLog.AppendText(string.Format("after cnt is:{0}",barcodes.Count));
+                }
+                    
                 UpdateDataGridView(grid, barcodes);
                 GlobalVars.Instance.SetBarcodes(grid, barcodes);
                 CheckBarcodes(grid, barcodes);
                 GlobalVars.Instance.CheckDuplicated();
                 AddInfo(string.Format("条{0}条码检查通过", grid));
               
+            }
+        }
+
+        private void RemoveExtraBarcodes(ref List<string> barcodes)
+        {
+            int i = barcodes.Count -1;
+            for(; i>0; i--)
+            {
+                if (barcodes[i] !="$$$")
+                    break;
+            }
+            if(i != barcodes.Count -1) //some tube missing
+            {
+                barcodes = barcodes.Take(i + 1).ToList();
             }
         }
 

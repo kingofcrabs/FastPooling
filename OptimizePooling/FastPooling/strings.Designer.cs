@@ -70,7 +70,7 @@ namespace FastPooling {
         }
         
         /// <summary>
-        ///   查找类似 0.23 的本地化字符串。
+        ///   查找类似 0.26 的本地化字符串。
         /// </summary>
         internal static string version {
             get {

@@ -1,4 +1,6 @@
 ﻿from subprocess import call
+import time
+
 firstTimeError = True;
 def ScanBarcode( grid):
     global firstTimeError    
@@ -19,18 +21,19 @@ def ScanBarcode( grid):
         call([sBinFolder + "FeedMe.exe","FeedMe"]);
         #F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt
         #resultFile = open("c:\\FastPooling\\Output\\result.txt");
-        resultFile = open("F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt");
+        resultFile = open("H:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\\result.txt");
         result = resultFile.read();
         resultFile.close();
         if result == "True":
             break;
 
 def main():
+    time.sleep(1);
     sBinFolder = "C:\\FastPooling\\bins\\";
     call([sBinFolder + "Notifier.exe","NewBatch"]);
     call([sBinFolder + "FeedMe.exe","FeedMe"]);
     #f = open("C:\\FastPooling\\Output\\gridsCount.txt");
-    f = open("F:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\gridsCount.txt");
+    f = open("H:\\Projects\\FastPooling\\trunk\\OptimizePooling\\FastPooling\\bin\\Output\gridsCount.txt");
     gridNum = f.read();
     f.close();
     startGrid = 5;
