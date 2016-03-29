@@ -217,7 +217,6 @@ namespace FastPooling
             {
                 GlobalVars.Instance.BatchID++;
                 Folders.ClearOutPut();
-                worklist.finishedSmpCnt = 0;
                 EnableControls(true);
                 return;
             }
